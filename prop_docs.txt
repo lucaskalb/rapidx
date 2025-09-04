@@ -1,0 +1,59 @@
+package prop // import "github.com/lucaskalb/rapidx/prop"
+
+Package prop provides property-based testing functionality for Go. It allows
+you to test properties of your code by generating random test cases and
+automatically shrinking counterexamples when failures are found.
+
+FUNCTIONS
+
+func ForAll[T any](t *testing.T, cfg Config, g gen.Generator[T]) func(func(*testing.T, T))
+    ForAll creates a property-based test that generates test cases using the
+    provided generator and runs them against the given test function. It returns
+    a function that takes the test body as a parameter.
+
+    The test will generate cfg.Examples number of test cases, and if any fail,
+    it will attempt to shrink the counterexample to find a minimal failing case.
+
+    Example usage:
+
+        ForAll(t, prop.Default(), gen.Int())(func(t *testing.T, x int) {
+            // Test property: x + 0 == x
+            if x+0 != x {
+                t.Errorf("addition identity failed for %d", x)
+            }
+        })
+
+
+TYPES
+
+type Config struct {
+	// Seed is the random seed used for test case generation.
+	// If zero, a random seed will be generated based on the current time.
+	Seed int64
+
+	// Examples is the number of test cases to generate and run.
+	Examples int
+
+	// MaxShrink is the maximum number of shrinking steps to perform
+	// when a counterexample is found.
+	MaxShrink int
+
+	// ShrinkStrat specifies the shrinking strategy to use.
+	// Supported strategies: "bfs" (breadth-first), "dfs" (depth-first).
+	ShrinkStrat string
+
+	// StopOnFirstFailure determines whether to stop testing
+	// after the first failing test case is found.
+	StopOnFirstFailure bool
+
+	// Parallelism specifies the number of parallel workers to use
+	// for running test cases. Must be at least 1.
+	Parallelism int
+}
+    Config holds the configuration for property-based testing.
+
+func Default() Config
+    Default returns a Config with default values based on command-line flags.
+    This is the recommended way to create a configuration for property-based
+    testing.
+
