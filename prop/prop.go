@@ -59,10 +59,8 @@ func ForAll[T any](t *testing.T, cfg Config, g gen.Generator[T]) func(func(*test
 			seed, cfg.Examples, cfg.MaxShrink, cfg.ShrinkStrat, cfg.Parallelism)
 
 		if cfg.Parallelism <= 1 {
-			// Execução sequencial (comportamento original)
 			runSequential(t, cfg, g, body, seed, r)
 		} else {
-			// Execução paralela
 			runParallel(t, cfg, g, body, seed, r)
 		}
 	}
