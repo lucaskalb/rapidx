@@ -1,3 +1,5 @@
+//go:build examples
+// +build examples
 // Package examples demonstrates how to use the rapidx property-based testing library.
 // These examples show various testing patterns and how the shrinking mechanism
 // helps find minimal counterexamples when properties fail.

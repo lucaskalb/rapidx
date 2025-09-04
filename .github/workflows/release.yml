@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+        
+    - name: Run tests
+      run: go test ./...
+      
+    - name: Build
+      run: go build -v ./...
+      
+    - name: Generate changelog
+      id: changelog
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "changelog=Release ${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "changelog=Release ${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name || github.event.inputs.version }}
+        release_name: ${{ steps.changelog.outputs.changelog }}
+        body: |
+          ## Changes
+          
+          This release includes:
+          - Property-based testing framework improvements
+          - Domain-specific generators (CPF)
+          - Enhanced shrinking strategies
+          - Better documentation and examples
+          
+          ## Installation
+          
+          ```bash
+          go get github.com/lucaskalb/rapidx@${{ github.ref_name || github.event.inputs.version }}
+          ```
+          
+          ## Documentation
+          
+          See the [README](https://github.com/lucaskalb/rapidx/blob/main/README.md) for usage examples.
+        draft: false
+        prerelease: false

@@ -1,0 +1,122 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'docs/**'
+      - '*.md'
+      - 'README.md'
+
+jobs:
+  docs:
+    name: Documentation Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+        
+    - name: Check markdown formatting
+      run: |
+        # Check for common markdown issues
+        find . -name "*.md" -not -path "./.git/*" | while read file; do
+          echo "Checking $file..."
+          
+          # Check for trailing whitespace
+          if grep -q '[[:space:]]$' "$file"; then
+            echo "❌ Trailing whitespace found in $file"
+            exit 1
+          fi
+          
+          # Check for proper line endings
+          if file "$file" | grep -q "CRLF"; then
+            echo "❌ CRLF line endings found in $file"
+            exit 1
+          fi
+        done
+        echo "✅ Markdown formatting is correct"
+        
+    - name: Validate ADR format
+      run: |
+        find docs -name "adr-*.md" | while read file; do
+          echo "Validating $file..."
+          
+          # Check for required sections
+          if ! grep -q "^## Status" "$file"; then
+            echo "❌ Missing 'Status' section in $file"
+            exit 1
+          fi
+          
+          if ! grep -q "^## Context" "$file"; then
+            echo "❌ Missing 'Context' section in $file"
+            exit 1
+          fi
+          
+          if ! grep -q "^## Decision" "$file"; then
+            echo "❌ Missing 'Decision' section in $file"
+            exit 1
+          fi
+          
+          if ! grep -q "^## Consequences" "$file"; then
+            echo "❌ Missing 'Consequences' section in $file"
+            exit 1
+          fi
+          
+          # Check status values
+          if ! grep -q "^\[Proposed\|Accepted\|Rejected\|Superseded\]" "$file"; then
+            echo "❌ Invalid status in $file"
+            exit 1
+          fi
+        done
+        echo "✅ ADR format is valid"
+        
+    - name: Check README links
+      run: |
+        if [ -f "README.md" ]; then
+          echo "Checking README.md links..."
+          # This is a basic check - in a real scenario you might want to use a tool like markdown-link-check
+          if grep -q "\[.*\](" README.md; then
+            echo "✅ README contains links (manual verification recommended)"
+          fi
+        fi
+        
+    - name: Validate code examples in docs
+      run: |
+        find docs -name "*.md" -exec grep -l "```go" {} \; | while read file; do
+          echo "Checking Go code examples in $file..."
+          
+          # Extract Go code blocks and check syntax
+          awk '/```go/,/```/' "$file" | grep -v "^```" | grep -v "^$" > /tmp/extracted_code.go
+          
+          if [ -s /tmp/extracted_code.go ]; then
+            if ! go fmt /tmp/extracted_code.go > /dev/null 2>&1; then
+              echo "❌ Invalid Go syntax in $file"
+              cat /tmp/extracted_code.go
+              exit 1
+            fi
+          fi
+        done
+        echo "✅ Go code examples are valid"
+        
+    - name: Check for broken internal links
+      run: |
+        find docs -name "*.md" | while read file; do
+          # Check for internal links that might be broken
+          grep -o '\[.*\]([^)]*)' "$file" | while read link; do
+            if echo "$link" | grep -q '\.md)'; then
+              target=$(echo "$link" | sed 's/.*(\(.*\)).*/\1/')
+              if [ ! -f "$target" ] && [ ! -f "docs/$target" ]; then
+                echo "⚠️  Potential broken link in $file: $link"
+              fi
+            fi
+          done
+        done

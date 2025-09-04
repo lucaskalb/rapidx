@@ -1,0 +1,81 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    name: Validate PR
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+        
+    - name: Check PR title
+      run: |
+        TITLE="${{ github.event.pull_request.title }}"
+        if [[ ! "$TITLE" =~ ^(feat|fix|docs|style|refactor|test|chore|ci|perf|build)(\(.+\))?: .+ ]]; then
+          echo "❌ PR title should follow conventional commits format: type(scope): description"
+          echo "Current title: $TITLE"
+          echo "Examples:"
+          echo "  feat: add new generator for email validation"
+          echo "  fix(domain): correct CPF validation algorithm"
+          echo "  docs: update README with new examples"
+          exit 1
+        fi
+        echo "✅ PR title follows conventional commits format"
+        
+    - name: Check for breaking changes
+      run: |
+        if [[ "${{ github.event.pull_request.title }}" =~ ^(feat|fix)(\(.+\))?!: ]]; then
+          echo "⚠️  Breaking change detected in PR title"
+          echo "Please ensure the PR description includes:"
+          echo "- BREAKING CHANGE: description of what changed"
+          echo "- Migration guide if applicable"
+        fi
+        
+    - name: Run tests
+      run: go test ./...
+      
+    - name: Run linting
+      run: |
+        go vet ./...
+        go fmt -d .
+        
+    - name: Check test coverage
+      run: |
+        go test -coverprofile=coverage.out ./...
+        COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+        echo "Test coverage: ${COVERAGE}%"
+        if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+          echo "❌ Test coverage is below 80%"
+          exit 1
+        fi
+        echo "✅ Test coverage is above 80%"
+        
+    - name: Validate ADR changes
+      run: |
+        if git diff --name-only origin/main...HEAD | grep -q "docs/adr-.*\.md"; then
+          echo "📋 ADR changes detected"
+          echo "Please ensure:"
+          echo "- ADR follows the template format"
+          echo "- Status is clearly marked"
+          echo "- Context and consequences are well documented"
+        fi
+        
+    - name: Check for TODO/FIXME comments
+      run: |
+        if git diff --name-only origin/main...HEAD | grep -E "\.(go|md)$" | xargs grep -l "TODO\|FIXME" 2>/dev/null; then
+          echo "⚠️  TODO/FIXME comments found in changed files"
+          echo "Consider addressing these before merging"
+        fi
