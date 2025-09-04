@@ -9,7 +9,7 @@ import (
 )
 
 func TestCPF(t *testing.T) {
-	cpf := CPF(false) 
+	cpf := CPF(false)
 	r := rand.New(rand.NewSource(123))
 
 	value, shrink := cpf.Generate(r, gen.Size{})

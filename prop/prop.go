@@ -355,13 +355,13 @@ func (g commandSequenceGenerator[S, C]) Generate(r *rand.Rand, sz gen.Size) (Com
 			maxLen = 10 // Default maximum length
 		}
 	}
-	
+
 	// Generate a random length between 0 and maxLen
 	length := r.Intn(maxLen + 1)
-	
+
 	commands := make([]C, length)
 	shrinkers := make([]gen.Shrinker[C], length)
-	
+
 	// Generate each command in the sequence
 	for i := 0; i < length; i++ {
 		// Select a random command type
@@ -371,21 +371,21 @@ func (g commandSequenceGenerator[S, C]) Generate(r *rand.Rand, sz gen.Size) (Com
 		}
 		cmdIndex := r.Intn(len(g.stateMachine.Commands))
 		cmd := g.stateMachine.Commands[cmdIndex]
-		
+
 		// Generate the command
 		cmdVal, cmdShrinker := cmd.Generator.Generate(r, sz)
 		commands[i] = cmdVal
 		shrinkers[i] = cmdShrinker
 	}
-	
+
 	// If no commands were generated (because no commands are available), create empty sequence
 	if len(g.stateMachine.Commands) == 0 {
 		commands = make([]C, 0)
 		shrinkers = make([]gen.Shrinker[C], 0)
 	}
-	
+
 	sequence := CommandSequence[C]{Commands: commands}
-	
+
 	// Create a shrinker for the sequence
 	shrinker := func(accept bool) (CommandSequence[C], bool) {
 		// Try different shrinking strategies
@@ -396,7 +396,7 @@ func (g commandSequenceGenerator[S, C]) Generate(r *rand.Rand, sz gen.Size) (Com
 			newSequence := CommandSequence[C]{Commands: newCommands}
 			return newSequence, true
 		}
-		
+
 		// Strategy 2: Shrink individual commands
 		for i := len(commands) - 1; i >= 0; i-- {
 			if newCmd, ok := shrinkers[i](accept); ok {
@@ -407,10 +407,10 @@ func (g commandSequenceGenerator[S, C]) Generate(r *rand.Rand, sz gen.Size) (Com
 				return newSequence, true
 			}
 		}
-		
+
 		return sequence, false
 	}
-	
+
 	return sequence, shrinker
 }
 
@@ -430,27 +430,27 @@ func executeStateMachine[S, C any](sm StateMachine[S, C], sequence CommandSequen
 	state := sm.InitialState
 	history := make([]StateTransition[S, C], 0, len(sequence.Commands))
 	skipped := make([]C, 0)
-	
+
 	for _, cmd := range sequence.Commands {
 		// Find a command that can handle this command type
 		matchedCmd := findMatchingCommand(sm, cmd)
-		
+
 		if matchedCmd == nil {
 			// No commands available, skip
 			skipped = append(skipped, cmd)
 			continue
 		}
-		
+
 		// Check precondition
 		if matchedCmd.Precondition != nil && !matchedCmd.Precondition(state, cmd) {
 			skipped = append(skipped, cmd)
 			continue
 		}
-		
+
 		// Execute the command
 		fromState := state
 		newState, err := matchedCmd.Execute(state, cmd)
-		
+
 		// Record the transition
 		transition := StateTransition[S, C]{
 			Command:   cmd,
@@ -459,13 +459,13 @@ func executeStateMachine[S, C any](sm StateMachine[S, C], sequence CommandSequen
 			Error:     err,
 		}
 		history = append(history, transition)
-		
+
 		// Update state if no error occurred
 		if err == nil {
 			state = newState
 		}
 	}
-	
+
 	return StateMachineResult[S, C]{
 		FinalState:       state,
 		ExecutionHistory: history,
@@ -481,11 +481,11 @@ func TestStateMachine[S, C any](t *testing.T, sm StateMachine[S, C], cfg Config)
 		stateMachine: sm,
 		maxLength:    20, // Default maximum sequence length
 	}
-	
+
 	// Use the existing ForAll function to test the state machine
 	ForAll(t, cfg, seqGen)(func(t *testing.T, sequence CommandSequence[C]) {
 		result := executeStateMachine(sm, sequence)
-		
+
 		// Validate the execution result
 		for _, transition := range result.ExecutionHistory {
 			// Find the command that was executed
@@ -496,14 +496,14 @@ func TestStateMachine[S, C any](t *testing.T, sm StateMachine[S, C], cfg Config)
 				executedCmd = &sm.Commands[i]
 				break
 			}
-			
+
 			if executedCmd != nil && executedCmd.Postcondition != nil {
 				if !executedCmd.Postcondition(transition.FromState, transition.Command, transition.ToState) {
 					t.Errorf("postcondition failed for command %s: from %v, cmd %v, to %v",
 						executedCmd.Name, transition.FromState, transition.Command, transition.ToState)
 				}
 			}
-			
+
 			// Check that no unexpected errors occurred
 			if transition.Error != nil {
 				t.Errorf("unexpected error executing command %v: %v", transition.Command, transition.Error)

@@ -119,7 +119,7 @@ func TestBankAccount(t *testing.T) {
             },
         },
     }
-    
+
     prop.TestStateMachine(t, sm, prop.Default())
 }
 ```
@@ -283,7 +283,7 @@ func TestCounter(t *testing.T) {
             // ... other commands
         },
     }
-    
+
     prop.TestStateMachine(t, sm, prop.Default())
 }
 ```
@@ -330,7 +330,7 @@ func TestCache(t *testing.T) {
             // ... other commands
         },
     }
-    
+
     prop.TestStateMachine(t, sm, prop.Default())
 }
 ```

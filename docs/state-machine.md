@@ -86,7 +86,7 @@ depositCmd := Command[BankAccount, BankCommand]{
             return state, errors.New("account is closed")
         }
         return BankAccount{
-            Balance: state.Balance + cmd.Amount, 
+            Balance: state.Balance + cmd.Amount,
             Closed: state.Closed,
         }, nil
     },
@@ -127,7 +127,7 @@ func TestBankAccount(t *testing.T) {
         ShrinkStrat: "bfs",
         Parallelism: 1,
     }
-    
+
     prop.TestStateMachine(t, sm, cfg)
 }
 ```
@@ -195,7 +195,7 @@ func TestBankAccount(t *testing.T) {
             },
         },
     }
-    
+
     prop.TestStateMachine(t, sm, prop.Default())
 }
 ```
@@ -241,10 +241,10 @@ func TestCache(t *testing.T) {
                     for k, v := range state.Data {
                         newData[k] = v
                     }
-                    
+
                     _, exists := newData[cmd.Key]
                     newData[cmd.Key] = cmd.Value
-                    
+
                     newState.Data = newData
                     if !exists {
                         newState.Size++
@@ -261,7 +261,7 @@ func TestCache(t *testing.T) {
             // ... other commands
         },
     }
-    
+
     prop.TestStateMachine(t, sm, prop.Default())
 }
 ```

@@ -27,7 +27,7 @@ When a test fails, the shrinking process:
 
 #### BFS (Breadth-First Search) - Default
 - **Behavior**: Explores all candidates at the current "level" before moving deeper
-- **Advantages**: 
+- **Advantages**:
   - Finds counterexamples closer to the original failing input
   - More predictable shrinking path
   - Better for understanding why a property fails

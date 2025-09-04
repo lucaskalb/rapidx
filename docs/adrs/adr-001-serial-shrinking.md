@@ -36,20 +36,20 @@ RapidX implements property-based testing with automatic test case generation and
 // Parallel execution with serial shrinking per worker
 func runParallel[T any](t *testing.T, cfg Config, g gen.Generator[T], body func(*testing.T, T), seed int64, r *rand.Rand) {
     // ... setup parallel workers ...
-    
+
     for i := 0; i < cfg.Parallelism; i++ {
         go func(workerID int) {
             for testIndex := range testChan {
                 // 1. Generate test case (parallel)
                 val, shrink := g.Generate(r, gen.Size{})
-                
+
                 // 2. Execute test (parallel)
                 passed := t.Run(name, func(st *testing.T) { body(st, val) })
-                
+
                 if passed {
                     continue
                 }
-                
+
                 // 3. Shrink counterexample (serial within worker)
                 min := val
                 for steps < cfg.MaxShrink {

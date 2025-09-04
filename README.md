@@ -85,7 +85,7 @@ RapidX supports two different shrinking strategies, each with distinct character
 
 #### BFS (Breadth-First Search) - Default
 - **Behavior**: Explores all candidates at the current "level" before moving deeper
-- **Advantages**: 
+- **Advantages**:
   - Finds counterexamples that are "closer" to the original failing input
   - More predictable shrinking path
   - Better for understanding why a property fails

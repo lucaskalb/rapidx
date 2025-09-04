@@ -15,7 +15,7 @@ func TestStateMachineTypes(t *testing.T) {
 		InitialState: 0,
 		Commands: []Command[int, string]{
 			{
-				Name: "increment",
+				Name:      "increment",
 				Generator: gen.Const("inc"),
 				Execute: func(state int, cmd string) (int, error) {
 					return state + 1, nil
@@ -112,11 +112,11 @@ func TestCommandSequenceGenerator(t *testing.T) {
 		InitialState: 0,
 		Commands: []Command[int, string]{
 			{
-				Name: "increment",
+				Name:      "increment",
 				Generator: gen.Const("inc"),
 			},
 			{
-				Name: "decrement",
+				Name:      "decrement",
 				Generator: gen.Const("dec"),
 			},
 		},
@@ -145,7 +145,7 @@ func TestCommandSequenceGenerator(t *testing.T) {
 			t.Error("Expected shrinking to be possible")
 		}
 		if len(shrunk.Commands) >= len(sequence.Commands) {
-			t.Errorf("Expected shrunk sequence to be shorter, got %d >= %d", 
+			t.Errorf("Expected shrunk sequence to be shorter, got %d >= %d",
 				len(shrunk.Commands), len(sequence.Commands))
 		}
 	}
@@ -157,7 +157,7 @@ func TestExecuteStateMachine(t *testing.T) {
 		InitialState: 0,
 		Commands: []Command[int, string]{
 			{
-				Name: "increment",
+				Name:      "increment",
 				Generator: gen.Const("inc"),
 				Execute: func(state int, cmd string) (int, error) {
 					return state + 1, nil
@@ -167,7 +167,7 @@ func TestExecuteStateMachine(t *testing.T) {
 				},
 			},
 			{
-				Name: "decrement",
+				Name:      "decrement",
 				Generator: gen.Const("dec"),
 				Execute: func(state int, cmd string) (int, error) {
 					return state - 1, nil
@@ -207,7 +207,7 @@ func TestExecuteStateMachineWithErrors(t *testing.T) {
 		InitialState: 0,
 		Commands: []Command[int, string]{
 			{
-				Name: "increment",
+				Name:      "increment",
 				Generator: gen.Const("inc"),
 				Execute: func(state int, cmd string) (int, error) {
 					if state >= 5 {
@@ -300,7 +300,7 @@ func TestCommandSequenceGeneratorShrinking(t *testing.T) {
 		InitialState: 0,
 		Commands: []Command[int, string]{
 			{
-				Name: "increment",
+				Name:      "increment",
 				Generator: gen.Const("inc"),
 			},
 		},
@@ -323,7 +323,7 @@ func TestCommandSequenceGeneratorShrinking(t *testing.T) {
 	shrunk, ok := shrinker(false)
 	if ok && originalLength > 0 {
 		if len(shrunk.Commands) >= originalLength {
-			t.Errorf("Expected shrunk sequence to be shorter, got %d >= %d", 
+			t.Errorf("Expected shrunk sequence to be shorter, got %d >= %d",
 				len(shrunk.Commands), originalLength)
 		}
 	}
@@ -369,7 +369,7 @@ func TestCommandSequenceGeneratorMaxLength(t *testing.T) {
 		InitialState: 0,
 		Commands: []Command[int, string]{
 			{
-				Name: "increment",
+				Name:      "increment",
 				Generator: gen.Const("inc"),
 			},
 		},
@@ -400,7 +400,7 @@ func TestCommandSequenceGeneratorSizeConstraints(t *testing.T) {
 		InitialState: 0,
 		Commands: []Command[int, string]{
 			{
-				Name: "increment",
+				Name:      "increment",
 				Generator: gen.Const("inc"),
 			},
 		},
