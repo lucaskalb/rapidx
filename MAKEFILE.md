@@ -213,5 +213,5 @@ make tidy
 - [Go Testing](https://golang.org/pkg/testing/)
 - [golangci-lint](https://golangci-lint.run/)
 - [staticcheck](https://staticcheck.io/)
-- [gosec](https://securecodewarrior.github.io/gosec/)
+- [gosec](https://github.com/securego/gosec)
 - [GitHub Actions](https://docs.github.com/en/actions)
