@@ -37,7 +37,7 @@ func TestBoolShrinker(t *testing.T) {
 }
 
 func TestBoolShrinkerWithAccept(t *testing.T) {
- with accept=true
+	// Test with accept=true
 	_, shrink := boolShrinkInit(true)
 	
 	// First call with accept=false
@@ -60,7 +60,7 @@ func TestBoolShrinkerWithAccept(t *testing.T) {
 }
 
 func TestBoolShrinkerExhaustion(t *testing.T) {
- until exhaustion
+	// Test until exhaustion
 	_, shrink := boolShrinkInit(true)
 	
 
@@ -84,7 +84,7 @@ func TestBoolShrinkerExhaustion(t *testing.T) {
 }
 
 func TestBoolShrinkerWithDFSSStrategy(t *testing.T) {
- with DFS strategy
+	// Test with DFS strategy
 	SetShrinkStrategy("dfs")
 	defer SetShrinkStrategy("bfs") // Reset to default
 	
@@ -103,7 +103,6 @@ func TestBoolShrinkerWithDFSSStrategy(t *testing.T) {
 }
 
 func TestBoolShrinkerEdgeCases(t *testing.T) {
- with edge cases
 	tests := []struct {
 		name  string
 		start bool
@@ -210,7 +209,5 @@ func boolShrinkInit(start bool) (bool, Shrinker[bool]) {
 		if !ok { return false, false }
 		last = nxt
 		return nxt, true
-	}
-}, true
 	}
 }

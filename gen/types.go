@@ -43,6 +43,11 @@ func SetShrinkStrategy(s string) {
 	}
 }
 
+// GetShrinkStrategy returns the current shrinking strategy.
+func GetShrinkStrategy() string {
+	return shrinkStrategy
+}
+
 // T is an optional alias for Generator[T] for compatibility.
 type T[T any] = Generator[T]
 

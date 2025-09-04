@@ -41,12 +41,11 @@ go get github.com/lucaskalb/rapidx
 
 ## Documentation
 
-- [Complete Documentation](DOCUMENTATION.md)
 - [State Machine Testing](docs/state-machine.md) - Testing stateful systems
 - [Package Documentation](prop_docs.txt) - Property-based testing framework
 - [Generator Documentation](gen_docs.txt) - Data generators
 - [Quick Utilities Documentation](quick_docs.txt) - Testing utilities
-- [Architecture Decision Records](docs/) - Design decisions and rationale
+- [Architecture Decision Records](docs/adrs) - Design decisions and rationale
 
 ## Command Line Flags
 

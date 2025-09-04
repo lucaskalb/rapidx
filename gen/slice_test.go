@@ -57,7 +57,6 @@ func TestSliceOfShrinker(t *testing.T) {
 }
 
 func TestSliceOfShrinkerWithAccept(t *testing.T) {
- with accept=true
 	r := rand.New(rand.NewSource(123))
 	gen := SliceOf(Int(Size{Min: 0, Max: 100}), Size{Min: 3, Max: 5})
 	_, shrink := gen.Generate(r, Size{})
@@ -82,7 +81,6 @@ func TestSliceOfShrinkerWithAccept(t *testing.T) {
 }
 
 func TestSliceOfShrinkerExhaustion(t *testing.T) {
- until exhaustion
 	r := rand.New(rand.NewSource(123))
 	gen := SliceOf(Int(Size{Min: 0, Max: 100}), Size{Min: 3, Max: 5})
 	_, shrink := gen.Generate(r, Size{})
@@ -108,7 +106,6 @@ func TestSliceOfShrinkerExhaustion(t *testing.T) {
 }
 
 func TestSliceOfShrinkerWithDFSSStrategy(t *testing.T) {
- with DFS strategy
 	SetShrinkStrategy("dfs")
 	defer SetShrinkStrategy("bfs") // Reset to default
 	
@@ -129,7 +126,6 @@ func TestSliceOfShrinkerWithDFSSStrategy(t *testing.T) {
 }
 
 func TestSliceOfShrinkerEdgeCases(t *testing.T) {
- with edge cases
 	tests := []struct {
 		name string
 		elem Generator[int]

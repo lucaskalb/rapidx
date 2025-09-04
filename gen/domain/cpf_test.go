@@ -1,16 +1,18 @@
-package gen
+package domain
 
 import (
 	"math/rand"
 	"strings"
 	"testing"
+
+	"github.com/lucaskalb/rapidx/gen"
 )
 
 func TestCPF(t *testing.T) {
-	gen := CPF(false) // unmasked
+	cpf := CPF(false) 
 	r := rand.New(rand.NewSource(123))
 
-	value, shrink := gen.Generate(r, Size{})
+	value, shrink := cpf.Generate(r, gen.Size{})
 
 	if len(value) != 11 {
 		t.Errorf("CPF().Generate() = %q (len=%d), expected length 11", value, len(value))
@@ -22,10 +24,10 @@ func TestCPF(t *testing.T) {
 }
 
 func TestCPFAny(t *testing.T) {
-	gen := CPFAny()
+	cpf := CPFAny()
 	r := rand.New(rand.NewSource(123))
 
-	value, shrink := gen.Generate(r, Size{})
+	value, shrink := cpf.Generate(r, gen.Size{})
 
 	if len(value) != 11 {
 		t.Errorf("CPFAny().Generate() = %q (len=%d), expected length 11", value, len(value))

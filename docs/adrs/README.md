@@ -20,7 +20,11 @@ Architecture Decision Records are documents that capture important architectural
   - Documents the decision to implement replay functionality for reproducing test failures
   - Explains the seed-based approach and command-line integration
 
-- [ADR-004: Simple State Machine Testing](adr-004-simple-state-machine.md) **[PROPOSED]**
+- [ADR-004: Simple State Machine Testing](adr-004-simple-state-machine.md)
+  - Proposes the implementation of state machine testing capabilities
+  - Explains the API design and implementation approach for testing stateful systems
+
+- [ADR-005: Simple State Machine Testing](adr-005-intentional-test-failures-organization.md)
   - Proposes the implementation of state machine testing capabilities
   - Explains the API design and implementation approach for testing stateful systems
 

@@ -6,7 +6,7 @@ package examples
 import (
 	"testing"
 
-	"github.com/lucaskalb/rapidx/gen"
+	"github.com/lucaskalb/rapidx/gen/domain"
 	"github.com/lucaskalb/rapidx/prop"
 	"github.com/lucaskalb/rapidx/quick"
 )
@@ -16,12 +16,12 @@ import (
 // the CPF validation algorithm, and that the UnmaskCPF function is idempotent.
 func Test_CPF_AlwaysValid(t *testing.T) {
 	cfg := prop.Default()
-	prop.ForAll(t, cfg, gen.CPF(false))(func(t *testing.T, cpf string) {
-		if !gen.ValidCPF(cpf) {
+	prop.ForAll(t, cfg, domain.CPF(false))(func(t *testing.T, cpf string) {
+		if !domain.ValidCPF(cpf) {
 			t.Fatalf("valid CPF generated was rejected: %q", cpf)
 		}
-		n1 := gen.UnmaskCPF(cpf)
-		n2 := gen.UnmaskCPF(n1)
+		n1 := domain.UnmaskCPF(cpf)
+		n2 := domain.UnmaskCPF(n1)
 		quick.Equal(t, n1, n2)
 	})
 }
@@ -30,9 +30,9 @@ func Test_CPF_AlwaysValid(t *testing.T) {
 // of CPF masking and unmasking operations. This test verifies that
 // unmasking a masked CPF and then masking it again produces the same result.
 func Test_CPF_MaskUnmaskRoundTrip(t *testing.T) {
-	prop.ForAll(t, prop.Default(), gen.CPF(true))(func(t *testing.T, masked string) {
-		raw := gen.UnmaskCPF(masked)
-		back := gen.UnmaskCPF(gen.MaskCPF(raw))
+	prop.ForAll(t, prop.Default(), domain.CPF(true))(func(t *testing.T, masked string) {
+		raw := domain.UnmaskCPF(masked)
+		back := domain.UnmaskCPF(domain.MaskCPF(raw))
 		quick.Equal(t, raw, back)
 	})
 }
@@ -41,8 +41,8 @@ func Test_CPF_MaskUnmaskRoundTrip(t *testing.T) {
 // CPF numbers with random masking (50/50 chance of masked or unmasked).
 // This test verifies that all generated CPF numbers are valid regardless of format.
 func Test_CPF_Any_Valid(t *testing.T) {
-	prop.ForAll(t, prop.Default(), gen.CPFAny())(func(t *testing.T, s string) {
-		if !gen.ValidCPF(s) {
+	prop.ForAll(t, prop.Default(), domain.CPFAny())(func(t *testing.T, s string) {
+		if !domain.ValidCPF(s) {
 			t.Fatalf("valid CPF generated was rejected: %q", s)
 		}
 	})
@@ -54,7 +54,7 @@ func Test_CPF_Any_Valid(t *testing.T) {
 // find a minimal counterexample when the property fails.
 func Test_CPF_Invalid(t *testing.T) {
 	cfg := prop.Default()
-	prop.ForAll(t, cfg, gen.CPF(false))(func(t *testing.T, cpf string) {
+	prop.ForAll(t, cfg, domain.CPF(false))(func(t *testing.T, cpf string) {
 		if cpf[0] != '9' {
 			t.Fatalf("expected to start with 9, but got %q", cpf)
 		}

@@ -1,15 +1,17 @@
-package gen
+package domain
 
 import (
 	"errors"
 	"math/rand"
 	"strings"
 	"unicode"
+
+	"github.com/lucaskalb/rapidx/gen"
 )
 
 // CPF generates valid CPF numbers; masked controls the format.
-func CPF(masked bool) Generator[string] {
-	return From(func(r *rand.Rand, _ Size) (string, Shrinker[string]) {
+func CPF(masked bool) gen.Generator[string] {
+	return gen.From(func(r *rand.Rand, _ gen.Size) (string, gen.Shrinker[string]) {
 		if r == nil {
 			r = rand.New(rand.NewSource(rand.Int63()))
 		}
@@ -112,7 +114,7 @@ func CPF(masked bool) Generator[string] {
 			if len(queue) == 0 {
 				return "", false
 			}
-			if shrinkStrategy == "dfs" {
+			if gen.GetShrinkStrategy() == "dfs" {
 				// LIFO
 				v := queue[len(queue)-1]
 				queue = queue[:len(queue)-1]
@@ -145,8 +147,8 @@ func CPF(masked bool) Generator[string] {
 }
 
 // CPFAny generates CPF numbers with 50/50 chance of being masked or unmasked.
-func CPFAny() Generator[string] {
-	return From(func(r *rand.Rand, sz Size) (string, Shrinker[string]) {
+func CPFAny() gen.Generator[string] {
+	return gen.From(func(r *rand.Rand, sz gen.Size) (string, gen.Shrinker[string]) {
 		if r == nil {
 			r = rand.New(rand.NewSource(rand.Int63()))
 		}
