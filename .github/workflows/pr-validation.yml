@@ -51,7 +51,7 @@ jobs:
     - name: Run linting
       run: |
         go vet ./...
-        go fmt -d .
+        go fmt ./...
         
     - name: Check test coverage
       run: |
