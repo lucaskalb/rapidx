@@ -1,5 +1,6 @@
 //go:build examples
 // +build examples
+
 package examples
 
 import (
@@ -69,7 +70,7 @@ func TestBankAccount(t *testing.T) {
 				},
 			},
 			{
-				Name: "close",
+				Name:      "close",
 				Generator: gen.Const(BankCommand{Type: "close", Amount: 0}),
 				Execute: func(state BankAccount, cmd BankCommand) (BankAccount, error) {
 					return BankAccount{Balance: state.Balance, Closed: true}, nil
@@ -137,7 +138,7 @@ func TestCounter(t *testing.T) {
 				},
 			},
 			{
-				Name: "reset",
+				Name:      "reset",
 				Generator: gen.Const(CounterCommand{Type: "reset", Delta: 0}),
 				Execute: func(state Counter, cmd CounterCommand) (Counter, error) {
 					return Counter{Value: 0}, nil
@@ -162,8 +163,8 @@ func TestCounter(t *testing.T) {
 
 // Cache represents a simple cache state machine.
 type Cache struct {
-	Data   map[string]string
-	Size   int
+	Data    map[string]string
+	Size    int
 	MaxSize int
 }
 
@@ -202,10 +203,10 @@ func TestCache(t *testing.T) {
 					for k, v := range state.Data {
 						newData[k] = v
 					}
-					
+
 					_, exists := newData[cmd.Key]
 					newData[cmd.Key] = cmd.Value
-					
+
 					newState.Data = newData
 					if !exists {
 						newState.Size++
@@ -249,13 +250,13 @@ func TestCache(t *testing.T) {
 					for k, v := range state.Data {
 						newData[k] = v
 					}
-					
+
 					_, exists := newData[cmd.Key]
 					if exists {
 						delete(newData, cmd.Key)
 						newState.Size--
 					}
-					
+
 					newState.Data = newData
 					return newState, nil
 				},
@@ -266,7 +267,7 @@ func TestCache(t *testing.T) {
 				},
 			},
 			{
-				Name: "clear",
+				Name:      "clear",
 				Generator: gen.Const(CacheCommand{Type: "clear", Key: "", Value: ""}),
 				Execute: func(state Cache, cmd CacheCommand) (Cache, error) {
 					return Cache{Data: make(map[string]string), Size: 0, MaxSize: state.MaxSize}, nil
