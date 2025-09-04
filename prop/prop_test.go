@@ -417,7 +417,6 @@ func TestForAll_SequentialStopOnFirstFailureFalse(t *testing.T) {
 		StopOnFirstFailure: false,
 	}
 	
- on all tests
 	gen := gen.From(func(r *rand.Rand, sz gen.Size) (int, gen.Shrinker[int]) {
 		return 42, func(accept bool) (int, bool) {
 			return 0, false
@@ -1307,11 +1306,6 @@ func TestForAll_ParallelShrinkingBreakPath(t *testing.T) {
 	
 	ForAll(t, config, gen)(func(t *testing.T, val int) {
 		// This test passes, so we test the shrinking break path in parallel
-		if val != 42 {
-			t.Errorf("Expected 42, got %d", val)
-		}
-	})
-}ng break path in parallel
 		if val != 42 {
 			t.Errorf("Expected 42, got %d", val)
 		}
