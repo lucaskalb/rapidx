@@ -13,7 +13,7 @@ jobs:
     
     strategy:
       matrix:
-        go-version: [1.21, 1.22, '1.23']
+        go-version: [1.22, 1.23, '1.24']
     
     steps:
     - name: Checkout code
@@ -69,7 +69,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.24'
         cache: true
         
     - name: Build
@@ -92,7 +92,8 @@ jobs:
         
     - name: Run static analysis
       run: |
-        go install honnef.co/go/tools/cmd/staticcheck@latest
+        # Try latest version first, fallback to specific version if needed
+        go install honnef.co/go/tools/cmd/staticcheck@latest || go install honnef.co/go/tools/cmd/staticcheck@v0.6.0
         staticcheck ./...
 
   lint:
@@ -106,7 +107,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.24'
         cache: true
         
     - name: Run golangci-lint
@@ -126,7 +127,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.24'
         cache: true
         
     - name: Run Gosec Security Scanner
