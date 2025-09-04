@@ -11,7 +11,7 @@ func TestSliceOfWithRunnerSize(t *testing.T) {
 	gen := SliceOf(Int(Size{}), Size{Min: 0, Max: 5})
 	value, _ := gen.Generate(r, Size{Min: 0, Max: 3})
 
-	if len(value) < 0 || len(value) > 3 {
+	if len(value) > 3 {
 		t.Errorf("SliceOf() with runner size returned slice of length %d, expected length in range [0, 3]",
 			len(value))
 	}
@@ -208,7 +208,6 @@ func TestSliceOfElementShrinking(t *testing.T) {
 	start, shrink := gen.Generate(r, Size{})
 
 	elementChanged := false
-	_, shrink = gen.Generate(r, Size{})
 
 	for i := 0; i < 20; i++ {
 		next, ok := shrink(false)

@@ -26,10 +26,10 @@ func Bool() Generator[bool] {
 		grow := func(base bool) {
 			queue = queue[:0]
 			// Heuristic: try false first
-			if base != false {
+			if base {
 				push(false)
 			}
-			if base != true {
+			if !base {
 				push(true)
 			}
 		}
