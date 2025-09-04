@@ -11,6 +11,7 @@ RapidX is a property-based testing library for Go that allows you to test proper
 - **Parallel execution** for faster test runs
 - **Command-line configuration** via flags
 - **Domain-specific generators** (e.g., CPF validation)
+- **State machine testing** for complex stateful systems
 
 ## Quick Start
 
@@ -41,9 +42,11 @@ go get github.com/lucaskalb/rapidx
 ## Documentation
 
 - [Complete Documentation](DOCUMENTATION.md)
+- [State Machine Testing](docs/state-machine.md) - Testing stateful systems
 - [Package Documentation](prop_docs.txt) - Property-based testing framework
 - [Generator Documentation](gen_docs.txt) - Data generators
 - [Quick Utilities Documentation](quick_docs.txt) - Testing utilities
+- [Architecture Decision Records](docs/) - Design decisions and rationale
 
 ## Command Line Flags
 
@@ -132,6 +135,7 @@ See the `examples/` directory for comprehensive usage examples including:
 - Custom generators
 - CPF validation testing
 - String and integer property tests
+- State machine testing (BankAccount, Counter, Cache)
 
 ## License
 

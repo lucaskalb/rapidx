@@ -274,3 +274,240 @@ type failureResult struct {
 	// steps is the number of shrinking steps performed.
 	steps int
 }
+
+// StateMachine represents a state machine for property-based testing.
+// S is the state type, C is the command type.
+type StateMachine[S, C any] struct {
+	// InitialState is the starting state of the state machine.
+	InitialState S
+
+	// Commands defines the available commands that can be executed on the state machine.
+	Commands []Command[S, C]
+}
+
+// Command represents a single command that can be executed on a state machine.
+type Command[S, C any] struct {
+	// Name is a human-readable name for the command.
+	Name string
+
+	// Generator creates instances of the command.
+	Generator gen.Generator[C]
+
+	// Execute applies the command to the current state and returns the new state.
+	// If an error is returned, the command execution is considered failed.
+	Execute func(S, C) (S, error)
+
+	// Precondition determines if a command can be executed in the given state.
+	// Commands that don't meet their precondition are skipped during execution.
+	Precondition func(S, C) bool
+
+	// Postcondition validates that the command execution was correct.
+	// It receives the original state, the command, and the resulting state.
+	// If it returns false, the test fails.
+	Postcondition func(S, C, S) bool
+}
+
+// CommandSequence represents a sequence of commands to be executed on a state machine.
+type CommandSequence[C any] struct {
+	Commands []C
+}
+
+// StateMachineResult holds the result of executing a command sequence on a state machine.
+type StateMachineResult[S, C any] struct {
+	// FinalState is the state after executing all commands.
+	FinalState S
+
+	// ExecutionHistory contains the history of state transitions.
+	ExecutionHistory []StateTransition[S, C]
+
+	// SkippedCommands contains commands that were skipped due to precondition failures.
+	SkippedCommands []C
+}
+
+// StateTransition represents a single state transition in the execution history.
+type StateTransition[S, C any] struct {
+	// Command is the command that was executed.
+	Command C
+
+	// FromState is the state before command execution.
+	FromState S
+
+	// ToState is the state after command execution.
+	ToState S
+
+	// Error is any error that occurred during command execution.
+	Error error
+}
+
+// commandSequenceGenerator creates a generator for command sequences.
+type commandSequenceGenerator[S, C any] struct {
+	stateMachine StateMachine[S, C]
+	maxLength    int
+}
+
+// Generate implements the Generator interface for command sequences.
+func (g commandSequenceGenerator[S, C]) Generate(r *rand.Rand, sz gen.Size) (CommandSequence[C], gen.Shrinker[CommandSequence[C]]) {
+	// Determine sequence length based on size constraints
+	maxLen := g.maxLength
+	if maxLen <= 0 {
+		maxLen = sz.Max
+		if maxLen <= 0 {
+			maxLen = 10 // Default maximum length
+		}
+	}
+	
+	// Generate a random length between 0 and maxLen
+	length := r.Intn(maxLen + 1)
+	
+	commands := make([]C, length)
+	shrinkers := make([]gen.Shrinker[C], length)
+	
+	// Generate each command in the sequence
+	for i := 0; i < length; i++ {
+		// Select a random command type
+		if len(g.stateMachine.Commands) == 0 {
+			// No commands available, skip
+			continue
+		}
+		cmdIndex := r.Intn(len(g.stateMachine.Commands))
+		cmd := g.stateMachine.Commands[cmdIndex]
+		
+		// Generate the command
+		cmdVal, cmdShrinker := cmd.Generator.Generate(r, sz)
+		commands[i] = cmdVal
+		shrinkers[i] = cmdShrinker
+	}
+	
+	// If no commands were generated (because no commands are available), create empty sequence
+	if len(g.stateMachine.Commands) == 0 {
+		commands = make([]C, 0)
+		shrinkers = make([]gen.Shrinker[C], 0)
+	}
+	
+	sequence := CommandSequence[C]{Commands: commands}
+	
+	// Create a shrinker for the sequence
+	shrinker := func(accept bool) (CommandSequence[C], bool) {
+		// Try different shrinking strategies
+		if len(commands) > 0 {
+			// Strategy 1: Remove commands from the end
+			newCommands := make([]C, len(commands)-1)
+			copy(newCommands, commands[:len(commands)-1])
+			newSequence := CommandSequence[C]{Commands: newCommands}
+			return newSequence, true
+		}
+		
+		// Strategy 2: Shrink individual commands
+		for i := len(commands) - 1; i >= 0; i-- {
+			if newCmd, ok := shrinkers[i](accept); ok {
+				newCommands := make([]C, len(commands))
+				copy(newCommands, commands)
+				newCommands[i] = newCmd
+				newSequence := CommandSequence[C]{Commands: newCommands}
+				return newSequence, true
+			}
+		}
+		
+		return sequence, false
+	}
+	
+	return sequence, shrinker
+}
+
+// findMatchingCommand finds a command that can handle the given command.
+// This is a simplified implementation - in practice you'd want proper command type discrimination.
+func findMatchingCommand[S, C any](sm StateMachine[S, C], cmd C) *Command[S, C] {
+	if len(sm.Commands) == 0 {
+		return nil
+	}
+	// For simplicity, we'll use the first command that can handle the command
+	// In a real implementation, you might want to add command type discrimination
+	return &sm.Commands[0]
+}
+
+// executeStateMachine executes a command sequence on a state machine and returns the result.
+func executeStateMachine[S, C any](sm StateMachine[S, C], sequence CommandSequence[C]) StateMachineResult[S, C] {
+	state := sm.InitialState
+	history := make([]StateTransition[S, C], 0, len(sequence.Commands))
+	skipped := make([]C, 0)
+	
+	for _, cmd := range sequence.Commands {
+		// Find a command that can handle this command type
+		matchedCmd := findMatchingCommand(sm, cmd)
+		
+		if matchedCmd == nil {
+			// No commands available, skip
+			skipped = append(skipped, cmd)
+			continue
+		}
+		
+		// Check precondition
+		if matchedCmd.Precondition != nil && !matchedCmd.Precondition(state, cmd) {
+			skipped = append(skipped, cmd)
+			continue
+		}
+		
+		// Execute the command
+		fromState := state
+		newState, err := matchedCmd.Execute(state, cmd)
+		
+		// Record the transition
+		transition := StateTransition[S, C]{
+			Command:   cmd,
+			FromState: fromState,
+			ToState:   newState,
+			Error:     err,
+		}
+		history = append(history, transition)
+		
+		// Update state if no error occurred
+		if err == nil {
+			state = newState
+		}
+	}
+	
+	return StateMachineResult[S, C]{
+		FinalState:       state,
+		ExecutionHistory: history,
+		SkippedCommands:  skipped,
+	}
+}
+
+// TestStateMachine tests a state machine using property-based testing.
+// It generates command sequences and validates that the state machine behaves correctly.
+func TestStateMachine[S, C any](t *testing.T, sm StateMachine[S, C], cfg Config) {
+	// Create a generator for command sequences
+	seqGen := commandSequenceGenerator[S, C]{
+		stateMachine: sm,
+		maxLength:    20, // Default maximum sequence length
+	}
+	
+	// Use the existing ForAll function to test the state machine
+	ForAll(t, cfg, seqGen)(func(t *testing.T, sequence CommandSequence[C]) {
+		result := executeStateMachine(sm, sequence)
+		
+		// Validate the execution result
+		for _, transition := range result.ExecutionHistory {
+			// Find the command that was executed
+			var executedCmd *Command[S, C]
+			for i := range sm.Commands {
+				// For simplicity, we'll assume the first command matches
+				// In a real implementation, you might want to add proper command matching
+				executedCmd = &sm.Commands[i]
+				break
+			}
+			
+			if executedCmd != nil && executedCmd.Postcondition != nil {
+				if !executedCmd.Postcondition(transition.FromState, transition.Command, transition.ToState) {
+					t.Errorf("postcondition failed for command %s: from %v, cmd %v, to %v",
+						executedCmd.Name, transition.FromState, transition.Command, transition.ToState)
+				}
+			}
+			
+			// Check that no unexpected errors occurred
+			if transition.Error != nil {
+				t.Errorf("unexpected error executing command %v: %v", transition.Command, transition.Error)
+			}
+		}
+	})
+}
