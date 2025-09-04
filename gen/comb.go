@@ -3,42 +3,41 @@ package gen
 
 import (
 	"math/rand"
-
 )
 
 // -------------------------
-// Helpers básicos
+// Basic helpers
 // -------------------------
 
-// Const retorna sempre o mesmo valor (sem shrinking).
+// Const always returns the same value (without shrinking).
 func Const[T any](v T) Generator[T] {
 	return From(func(_ *rand.Rand, _ Size) (T, Shrinker[T]) {
 		return v, func(bool) (T, bool) { var z T; return z, false }
 	})
 }
 
-// OneOf escolhe uniformemente um dos geradores.
+// OneOf chooses uniformly from one of the generators.
 func OneOf[T any](gs ...Generator[T]) Generator[T] {
 	return Weighted(func(_ T) float64 { return 1.0 }, gs...)
 }
 
-// Weighted escolhe um gerador com base em pesos dinâmicos (por valor).
-// A estratégia aqui captura qual índice foi selecionado para poder “shrincar”
-// reusando o shrinker do gerador escolhido. Opcionalmente, no shrinking
-// também tenta migrar para vizinhos (outros índices) — controlado por `tryNeighbors`.
+// Weighted chooses a generator based on dynamic weights (by value).
+// The strategy here captures which index was selected to be able to "shrink"
+// reusing the shrinker of the chosen generator. Optionally, in shrinking
+// it also tries to migrate to neighbors (other indices) — controlled by `tryNeighbors`.
 func Weighted[T any](weight func(T) float64, gs ...Generator[T]) Generator[T] {
 	if len(gs) == 0 {
-		panic("gen.Weighted: precisa de ao menos um gerador")
+		panic("gen.Weighted: needs at least one generator")
 	}
 	return From(func(r *rand.Rand, sz Size) (T, Shrinker[T]) {
 		if r == nil {
 			r = rand.New(rand.NewSource(rand.Int63()))
 		}
-		// etapa 1: escolher gerador
+		// step 1: choose generator
 		idx := r.Intn(len(gs))
 		val, shrink := gs[idx].Generate(r, sz)
 
-		// fila de vizinhos (outros geradores) para tentar durante shrinking
+		// queue of neighbors (other generators) to try during shrinking
 		neighbors := make([]int, 0, len(gs)-1)
 		for i := range gs {
 			if i != idx {
@@ -47,28 +46,28 @@ func Weighted[T any](weight func(T) float64, gs ...Generator[T]) Generator[T] {
 		}
 
 		return val, func(accept bool) (T, bool) {
-			// se o último candidato foi aceito (falhou), continuamos shrink do mesmo gerador
+			// if the last candidate was accepted (failed), we continue shrinking the same generator
 			if accept {
 				if next, ok := shrink(true); ok {
 					return next, true
 				}
-				// esgotou o shrink interno → tenta migrar para um vizinho
+				// exhausted internal shrink → try to migrate to a neighbor
 				for len(neighbors) > 0 {
 					j := neighbors[0]
 					neighbors = neighbors[1:]
 					nv, ns := gs[j].Generate(r, sz)
-					// atualiza “contexto” para o novo gerador
+					// update "context" for the new generator
 					idx, val, shrink = j, nv, ns
 					return val, true
 				}
 				var z T
 				return z, false
 			}
-			// candidato foi rejeitado → tente outro do mesmo shrinker
+			// candidate was rejected → try another from the same shrinker
 			if next, ok := shrink(false); ok {
 				return next, true
 			}
-			// ou migre para um vizinho
+			// or migrate to a neighbor
 			for len(neighbors) > 0 {
 				j := neighbors[0]
 				neighbors = neighbors[1:]
@@ -83,10 +82,10 @@ func Weighted[T any](weight func(T) float64, gs ...Generator[T]) Generator[T] {
 }
 
 // -------------------------
-// Combinadores
+// Combinators
 // -------------------------
 
-// Map aplica f: A -> B preservando o shrinking (mapeia os candidatos de A).
+// Map applies f: A -> B preserving shrinking (maps A's candidates).
 func Map[A, B any](ga Generator[A], f func(A) B) Generator[B] {
 	return From(func(r *rand.Rand, sz Size) (B, Shrinker[B]) {
 		a, sa := ga.Generate(r, sz)
@@ -102,9 +101,9 @@ func Map[A, B any](ga Generator[A], f func(A) B) Generator[B] {
 	})
 }
 
-// Filter mantém apenas valores que satisfazem pred.
-// Implementa “rebase” no shrink: quando aceita, shrinka em cima do novo mínimo
-// garantindo que os próximos candidatos também satisfaçam o predicado.
+// Filter keeps only values that satisfy pred.
+// Implements "rebase" in shrink: when accepting, shrinks on top of the new minimum
+// ensuring that the next candidates also satisfy the predicate.
 func Filter[T any](g Generator[T], pred func(T) bool, maxTries int) Generator[T] {
 	if maxTries <= 0 {
 		maxTries = 1000
@@ -113,7 +112,7 @@ func Filter[T any](g Generator[T], pred func(T) bool, maxTries int) Generator[T]
 		if r == nil {
 			r = rand.New(rand.NewSource(rand.Int63()))
 		}
-		// gerar um valor que passe no pred
+		// generate a value that passes the pred
 		var v T
 		var s Shrinker[T]
 		okv := false
@@ -129,8 +128,8 @@ func Filter[T any](g Generator[T], pred func(T) bool, maxTries int) Generator[T]
 			return z, func(bool) (T, bool) { return z, false }
 		}
 
-		// shrinker: sempre que aceitar, precisamos “rebasear” e continuar
-		// garantindo pred nos próximos candidatos.
+		// shrinker: whenever we accept, we need to "rebase" and continue
+		// ensuring pred on the next candidates.
 		return v, func(accept bool) (T, bool) {
 			for {
 				nv, ok := s(accept)
@@ -141,15 +140,15 @@ func Filter[T any](g Generator[T], pred func(T) bool, maxTries int) Generator[T]
 				if pred(nv) {
 					return nv, true
 				}
-				// candidato não cumpre pred → rejeita e tenta próximo
+				// candidate doesn't satisfy pred → reject and try next
 				accept = false
 			}
 		}
 	})
 }
 
-// Bind (flatMap): o gerador de saída depende do valor gerado em A.
-// Shrinking: primeiro tenta shrink em B; quando esgota, shrink em A e regenera B.
+// Bind (flatMap): the output generator depends on the value generated in A.
+// Shrinking: first tries to shrink in B; when exhausted, shrinks in A and regenerates B.
 func Bind[A, B any](ga Generator[A], f func(A) Generator[B]) Generator[B] {
 	return From(func(r *rand.Rand, sz Size) (B, Shrinker[B]) {
 		if r == nil {
@@ -159,7 +158,7 @@ func Bind[A, B any](ga Generator[A], f func(A) Generator[B]) Generator[B] {
 		gb := f(a)
 		b, sb := gb.Generate(r, sz)
 
-		state := 0 // 0 => shrink B; 1 => shrink A (e regenerar B)
+		state := 0 // 0 => shrink B; 1 => shrink A (and regenerate B)
 
 		return b, func(accept bool) (B, bool) {
 			switch state {
@@ -167,9 +166,9 @@ func Bind[A, B any](ga Generator[A], f func(A) Generator[B]) Generator[B] {
 				if nb, ok := sb(accept); ok {
 					return nb, true
 				}
-				// esgotou shrink de B → partimos para shrink de A
+				// exhausted shrink of B → we move to shrink of A
 				state = 1
-				accept = false // primeiro passo em A é “rejeitar” para pegar próximo candidato
+				accept = false // first step in A is "reject" to get next candidate
 				fallthrough
 			case 1:
 				na, ok := sa(accept)
@@ -177,7 +176,7 @@ func Bind[A, B any](ga Generator[A], f func(A) Generator[B]) Generator[B] {
 					var z B
 					return z, false
 				}
-				// regenerar B com base no novo A
+				// regenerate B based on the new A
 				a = na
 				gb = f(a)
 				b, sb = gb.Generate(r, sz)
@@ -189,4 +188,3 @@ func Bind[A, B any](ga Generator[A], f func(A) Generator[B]) Generator[B] {
 		}
 	})
 }
-

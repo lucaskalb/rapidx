@@ -1,3 +1,6 @@
+// Package examples demonstrates how to use the rapidx property-based testing library.
+// These examples show various testing patterns and how the shrinking mechanism
+// helps find minimal counterexamples when properties fail.
 package examples
 
 import (
@@ -8,11 +11,14 @@ import (
 	"github.com/lucaskalb/rapidx/quick"
 )
 
+// Test_CPF_AlwaysValid demonstrates a property-based test for CPF generation.
+// This test verifies that all generated CPF numbers are valid according to
+// the CPF validation algorithm, and that the UnmaskCPF function is idempotent.
 func Test_CPF_AlwaysValid(t *testing.T) {
 	cfg := prop.Default()
 	prop.ForAll(t, cfg, gen.CPF(false))(func(t *testing.T, cpf string) {
 		if !gen.ValidCPF(cpf) {
-			t.Fatalf("cpf válido gerado foi rejeitado: %q", cpf)
+			t.Fatalf("valid CPF generated was rejected: %q", cpf)
 		}
 		n1 := gen.UnmaskCPF(cpf)
 		n2 := gen.UnmaskCPF(n1)
@@ -20,6 +26,9 @@ func Test_CPF_AlwaysValid(t *testing.T) {
 	})
 }
 
+// Test_CPF_MaskUnmaskRoundTrip demonstrates testing the round-trip property
+// of CPF masking and unmasking operations. This test verifies that
+// unmasking a masked CPF and then masking it again produces the same result.
 func Test_CPF_MaskUnmaskRoundTrip(t *testing.T) {
 	prop.ForAll(t, prop.Default(), gen.CPF(true))(func(t *testing.T, masked string) {
 		raw := gen.UnmaskCPF(masked)
@@ -28,20 +37,26 @@ func Test_CPF_MaskUnmaskRoundTrip(t *testing.T) {
 	})
 }
 
+// Test_CPF_Any_Valid demonstrates testing CPFAny() generator which produces
+// CPF numbers with random masking (50/50 chance of masked or unmasked).
+// This test verifies that all generated CPF numbers are valid regardless of format.
 func Test_CPF_Any_Valid(t *testing.T) {
 	prop.ForAll(t, prop.Default(), gen.CPFAny())(func(t *testing.T, s string) {
 		if !gen.ValidCPF(s) {
-			t.Fatalf("cpf válido gerado foi rejeitado: %q", s)
+			t.Fatalf("valid CPF generated was rejected: %q", s)
 		}
 	})
 }
 
+// Test_CPF_Invalid demonstrates a property-based test that is designed to fail.
+// This test expects all CPF numbers to start with '9', which is not true for
+// valid CPF generation. This example shows how the shrinking mechanism will
+// find a minimal counterexample when the property fails.
 func Test_CPF_Invalid(t *testing.T) {
 	cfg := prop.Default()
 	prop.ForAll(t, cfg, gen.CPF(false))(func(t *testing.T, cpf string) {
-			if cpf[0] != '9' {
-					t.Fatalf("esperava começar com 9, mas veio %q", cpf)
-			}
+		if cpf[0] != '9' {
+			t.Fatalf("expected to start with 9, but got %q", cpf)
+		}
 	})
 }
-

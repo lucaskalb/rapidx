@@ -5,19 +5,30 @@ import (
 	"unicode/utf8"
 )
 
-// Atalhos de alfabetos comuns (ASCII puro pra evitar surpresas)
+// Common alphabet shortcuts (pure ASCII to avoid surprises)
 const (
-	AlphabetLower   = "abcdefghijklmnopqrstuvwxyz"
-	AlphabetUpper   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	AlphabetAlpha   = AlphabetLower + AlphabetUpper
-	AlphabetDigits  = "0123456789"
+	// AlphabetLower contains lowercase letters a-z.
+	AlphabetLower = "abcdefghijklmnopqrstuvwxyz"
+
+	// AlphabetUpper contains uppercase letters A-Z.
+	AlphabetUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+	// AlphabetAlpha contains both lowercase and uppercase letters.
+	AlphabetAlpha = AlphabetLower + AlphabetUpper
+
+	// AlphabetDigits contains digits 0-9.
+	AlphabetDigits = "0123456789"
+
+	// AlphabetAlphaNum contains letters and digits.
 	AlphabetAlphaNum = AlphabetAlpha + AlphabetDigits
-	AlphabetASCII   = AlphabetAlphaNum + " !\"#$%&'()*+,-./:;<=>?@[\\]^_{|}~"
+
+	// AlphabetASCII contains all printable ASCII characters.
+	AlphabetASCII = AlphabetAlphaNum + " !\"#$%&'()*+,-./:;<=>?@[\\]^_{|}~"
 )
 
-// String gera strings usando um alfabeto (conjunto de runas) e um Size.
-// - Se size.Min/Max = 0, usa padrão: Min=0, Max=32.
-// - Se alphabet vazio, usa AlphabetAlphaNum.
+// String generates strings using an alphabet (set of runes) and a Size.
+// - If size.Min/Max = 0, uses default: Min=0, Max=32.
+// - If alphabet is empty, uses AlphabetAlphaNum.
 func String(alphabet string, size Size) Generator[string] {
 	return From(func(r *rand.Rand, sz Size) (string, Shrinker[string]) {
 		if r == nil {
@@ -30,7 +41,7 @@ func String(alphabet string, size Size) Generator[string] {
 		if size.Min == 0 && size.Max == 0 {
 			size.Min, size.Max = 0, 32
 		}
-		if sz.Min != 0 || sz.Max != 0 { // permitir override externo
+		if sz.Min != 0 || sz.Max != 0 { // allow external override
 			size = sz
 		}
 		if size.Max < size.Min {
@@ -48,7 +59,7 @@ func String(alphabet string, size Size) Generator[string] {
 		}
 		cur := string(b)
 
-		// ---- shrinking: multi-ramo (BFS/DFS) com dedup ----
+		// ---- shrinking: multi-branch (BFS/DFS) with dedup ----
 		type neighbor = string
 		queue := make([]neighbor, 0, 64)
 		seen := map[string]struct{}{cur: {}}
@@ -62,22 +73,22 @@ func String(alphabet string, size Size) Generator[string] {
 			queue = append(queue, s)
 		}
 
-		// heurística:
-		// (1) encurtar (remover sufixo)
-		// (2) substituir caracteres por “mais simples” (primeiro da tabela; ex.: 'a' ou '0')
+		// heuristic:
+		// (1) shorten (remove suffix)
+		// (2) replace characters with "simpler" ones (first in table; e.g., 'a' or '0')
 		growNeighbors := func(base string) {
 			queue = queue[:0]
-			// (1) encurtar vários passos de uma vez (gerar vários comprimentos)
+			// (1) shorten multiple steps at once (generate multiple lengths)
 			if len(base) > 0 {
 				for newLen := len(base) - 1; newLen >= 0; newLen-- {
 					push(base[:newLen])
 				}
 			}
-			// (2) amansar caracteres para o primeiro do alfabeto
+			// (2) tame characters to the first in the alphabet
 			if len(base) > 0 {
-				target := rune(alphabet[0]) // ex.: 'a' ou '0'
+				target := rune(alphabet[0]) // e.g., 'a' or '0'
 				rs := []rune(base)
-				// direita→esquerda para estabilizar logo sufixos
+				// right→left to quickly stabilize suffixes
 				for i := len(rs) - 1; i >= 0; i-- {
 					if rs[i] != target {
 						rs2 := make([]rune, len(rs))
@@ -123,9 +134,15 @@ func String(alphabet string, size Size) Generator[string] {
 	})
 }
 
-// Açúcares sintáticos
-func StringAlpha(size Size) Generator[string]    { return String(AlphabetAlpha, size) }
-func StringAlphaNum(size Size) Generator[string] { return String(AlphabetAlphaNum, size) }
-func StringDigits(size Size) Generator[string]   { return String(AlphabetDigits, size) }
-func StringASCII(size Size) Generator[string]    { return String(AlphabetASCII, size) }
+// Syntactic sugar functions for common string generators
+// StringAlpha generates strings using only alphabetic characters.
+func StringAlpha(size Size) Generator[string] { return String(AlphabetAlpha, size) }
 
+// StringAlphaNum generates strings using alphanumeric characters.
+func StringAlphaNum(size Size) Generator[string] { return String(AlphabetAlphaNum, size) }
+
+// StringDigits generates strings using only digits.
+func StringDigits(size Size) Generator[string] { return String(AlphabetDigits, size) }
+
+// StringASCII generates strings using all printable ASCII characters.
+func StringASCII(size Size) Generator[string] { return String(AlphabetASCII, size) }

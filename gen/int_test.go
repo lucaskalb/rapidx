@@ -7,7 +7,7 @@ import (
 
 func TestInt(t *testing.T) {
 	r := rand.New(rand.NewSource(123))
-	
+
 	tests := []struct {
 		name string
 		size Size
@@ -22,12 +22,12 @@ func TestInt(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			gen := Int(tt.size)
 			value, shrink := gen.Generate(r, Size{})
-			
+
 			// Test that we get a value
 			if value == 0 && tt.size.Min != 0 && tt.size.Max != 0 {
 				// This is acceptable for some ranges
 			}
-			
+
 			// Test that shrinker is not nil
 			if shrink == nil {
 				t.Error("Int().Generate() returned nil shrinker")
@@ -38,7 +38,7 @@ func TestInt(t *testing.T) {
 
 func TestIntRange(t *testing.T) {
 	r := rand.New(rand.NewSource(123))
-	
+
 	tests := []struct {
 		name string
 		min  int
@@ -55,19 +55,19 @@ func TestIntRange(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			gen := IntRange(tt.min, tt.max)
 			value, shrink := gen.Generate(r, Size{})
-			
+
 			// Test that value is in range
 			expectedMin := tt.min
 			expectedMax := tt.max
 			if tt.min > tt.max {
 				expectedMin, expectedMax = tt.max, tt.min
 			}
-			
+
 			if value < expectedMin || value > expectedMax {
-				t.Errorf("IntRange(%d, %d).Generate() = %d, expected value in range [%d, %d]", 
+				t.Errorf("IntRange(%d, %d).Generate() = %d, expected value in range [%d, %d]",
 					tt.min, tt.max, value, expectedMin, expectedMax)
 			}
-			
+
 			// Test that shrinker is not nil
 			if shrink == nil {
 				t.Error("IntRange().Generate() returned nil shrinker")
@@ -78,9 +78,9 @@ func TestIntRange(t *testing.T) {
 
 func TestShrinkTarget(t *testing.T) {
 	tests := []struct {
-		name string
-		min  int
-		max  int
+		name     string
+		min      int
+		max      int
 		expected int
 	}{
 		{"zero in range", -10, 10, 0},
@@ -96,7 +96,7 @@ func TestShrinkTarget(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := shrinkTarget(tt.min, tt.max)
 			if result != tt.expected {
-				t.Errorf("shrinkTarget(%d, %d) = %d, expected %d", 
+				t.Errorf("shrinkTarget(%d, %d) = %d, expected %d",
 					tt.min, tt.max, result, tt.expected)
 			}
 		})
@@ -105,9 +105,9 @@ func TestShrinkTarget(t *testing.T) {
 
 func TestMidpointTowards(t *testing.T) {
 	tests := []struct {
-		name string
-		a    int
-		b    int
+		name     string
+		a        int
+		b        int
 		expected int
 	}{
 		{"same values", 5, 5, 5},
@@ -123,7 +123,7 @@ func TestMidpointTowards(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := midpointTowards(tt.a, tt.b)
 			if result != tt.expected {
-				t.Errorf("midpointTowards(%d, %d) = %d, expected %d", 
+				t.Errorf("midpointTowards(%d, %d) = %d, expected %d",
 					tt.a, tt.b, result, tt.expected)
 			}
 		})
@@ -132,9 +132,9 @@ func TestMidpointTowards(t *testing.T) {
 
 func TestStepTowards(t *testing.T) {
 	tests := []struct {
-		name string
-		a    int
-		b    int
+		name     string
+		a        int
+		b        int
 		expected int
 	}{
 		{"same values", 5, 5, 5},
@@ -148,7 +148,7 @@ func TestStepTowards(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := stepTowards(tt.a, tt.b)
 			if result != tt.expected {
-				t.Errorf("stepTowards(%d, %d) = %d, expected %d", 
+				t.Errorf("stepTowards(%d, %d) = %d, expected %d",
 					tt.a, tt.b, result, tt.expected)
 			}
 		})
@@ -157,9 +157,9 @@ func TestStepTowards(t *testing.T) {
 
 func TestAutoRange(t *testing.T) {
 	tests := []struct {
-		name       string
-		local      Size
-		fromRunner Size
+		name        string
+		local       Size
+		fromRunner  Size
 		expectedMin int
 		expectedMax int
 	}{
@@ -175,7 +175,7 @@ func TestAutoRange(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			min, max := autoRange(tt.local, tt.fromRunner)
 			if min != tt.expectedMin || max != tt.expectedMax {
-				t.Errorf("autoRange(%v, %v) = (%d, %d), expected (%d, %d)", 
+				t.Errorf("autoRange(%v, %v) = (%d, %d), expected (%d, %d)",
 					tt.local, tt.fromRunner, min, max, tt.expectedMin, tt.expectedMax)
 			}
 		})
@@ -184,10 +184,10 @@ func TestAutoRange(t *testing.T) {
 
 func TestClamp(t *testing.T) {
 	tests := []struct {
-		name string
-		x    int
-		min  int
-		max  int
+		name     string
+		x        int
+		min      int
+		max      int
 		expected int
 	}{
 		{"in range", 5, 0, 10, 5},
@@ -202,7 +202,7 @@ func TestClamp(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := clamp(tt.x, tt.min, tt.max)
 			if result != tt.expected {
-				t.Errorf("clamp(%d, %d, %d) = %d, expected %d", 
+				t.Errorf("clamp(%d, %d, %d) = %d, expected %d",
 					tt.x, tt.min, tt.max, result, tt.expected)
 			}
 		})
@@ -258,26 +258,26 @@ func TestMaxInt(t *testing.T) {
 
 func TestIntShrinker(t *testing.T) {
 	start, shrink := intShrinkInit(50, 0, 100)
-	
+
 	if start != 50 {
 		t.Errorf("intShrinkInit() start = %d, expected 50", start)
 	}
-	
+
 	if shrink == nil {
 		t.Error("intShrinkInit() returned nil shrinker")
 	}
-	
+
 	// Test shrinking behavior
 	next, ok := shrink(false) // First call with accept=false
 	if !ok {
 		t.Error("Shrinker returned false on first call")
 	}
-	
+
 	// Test that we get a different value
 	if next == start {
 		t.Error("Shrinker returned same value as start")
 	}
-	
+
 	// Test that value is in range
 	if next < 0 || next > 100 {
 		t.Errorf("Shrinker returned value %d outside range [0, 100]", next)
@@ -287,17 +287,17 @@ func TestIntShrinker(t *testing.T) {
 func TestIntShrinkerWithAccept(t *testing.T) {
 	// Test shrinking behavior with accept=true
 	_, shrink := intShrinkInit(50, 0, 100)
-	
+
 	// First call with accept=false
 	next1, ok1 := shrink(false)
 	if !ok1 {
 		t.Error("Shrinker returned false on first call")
 	}
-	
+
 	// Second call with accept=true (should rebase)
 	next2, ok2 := shrink(true)
 	// It's possible that the shrinker exhausts quickly, so we don't require it to succeed
-	
+
 	// Test that first value is in range
 	if next1 < 0 || next1 > 100 {
 		t.Errorf("Shrinker returned value %d outside range [0, 100]", next1)
@@ -310,7 +310,7 @@ func TestIntShrinkerWithAccept(t *testing.T) {
 func TestIntShrinkerExhaustion(t *testing.T) {
 	// Test shrinking behavior until exhaustion
 	_, shrink := intShrinkInit(50, 0, 100)
-	
+
 	// Call shrinker many times until it returns false
 	callCount := 0
 	for {
@@ -324,7 +324,7 @@ func TestIntShrinkerExhaustion(t *testing.T) {
 			break
 		}
 	}
-	
+
 	// Should have made at least some calls
 	if callCount == 0 {
 		t.Error("Shrinker exhausted immediately")
@@ -335,15 +335,15 @@ func TestIntShrinkerWithDFSSStrategy(t *testing.T) {
 	// Test shrinking behavior with DFS strategy
 	SetShrinkStrategy("dfs")
 	defer SetShrinkStrategy("bfs") // Reset to default
-	
+
 	_, shrink := intShrinkInit(50, 0, 100)
-	
+
 	// Test that we get a value
 	next, ok := shrink(false)
 	if !ok {
 		t.Error("Shrinker returned false on first call")
 	}
-	
+
 	// Test that value is in range
 	if next < 0 || next > 100 {
 		t.Errorf("Shrinker returned value %d outside range [0, 100]", next)
@@ -354,15 +354,15 @@ func TestIntShrinkerWithInvalidStrategy(t *testing.T) {
 	// Test shrinking behavior with invalid strategy (should default to BFS)
 	SetShrinkStrategy("invalid")
 	defer SetShrinkStrategy("bfs") // Reset to default
-	
+
 	_, shrink := intShrinkInit(50, 0, 100)
-	
+
 	// Test that we get a value
 	next, ok := shrink(false)
 	if !ok {
 		t.Error("Shrinker returned false on first call")
 	}
-	
+
 	// Test that value is in range
 	if next < 0 || next > 100 {
 		t.Errorf("Shrinker returned value %d outside range [0, 100]", next)
@@ -372,7 +372,7 @@ func TestIntShrinkerWithInvalidStrategy(t *testing.T) {
 func TestIntShrinkerEdgeCases(t *testing.T) {
 	// Test shrinking behavior with edge cases
 	tests := []struct {
-		name string
+		name  string
 		start int
 		min   int
 		max   int
@@ -383,20 +383,20 @@ func TestIntShrinkerEdgeCases(t *testing.T) {
 		{"negative range", -50, -100, -10},
 		{"zero range", 0, -10, 10},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			start, shrink := intShrinkInit(tt.start, tt.min, tt.max)
-			
+
 			if start != tt.start {
 				t.Errorf("intShrinkInit() start = %d, expected %d", start, tt.start)
 			}
-			
+
 			// Test that shrinker is not nil
 			if shrink == nil {
 				t.Error("intShrinkInit() returned nil shrinker")
 			}
-			
+
 			// Test that we can call shrinker at least once
 			next, ok := shrink(false)
 			if ok {

@@ -10,14 +10,12 @@ import (
 func TestBool(t *testing.T) {
 	gen := Bool()
 	r := rand.New(rand.NewSource(123))
-	
+
 	value, shrink := gen.Generate(r, Size{})
-	
 
 	if value != true && value != false {
 		t.Errorf("Bool().Generate() = %v, expected boolean", value)
 	}
-	
 
 	if shrink == nil {
 		t.Error("Bool().Generate() returned nil shrinker")
@@ -27,14 +25,12 @@ func TestBool(t *testing.T) {
 func TestConst(t *testing.T) {
 	gen := Const(42)
 	r := rand.New(rand.NewSource(123))
-	
+
 	value, shrink := gen.Generate(r, Size{})
-	
 
 	if value != 42 {
 		t.Errorf("Const().Generate() = %d, expected 42", value)
 	}
-	
 
 	if shrink == nil {
 		t.Error("Const().Generate() returned nil shrinker")
@@ -44,14 +40,12 @@ func TestConst(t *testing.T) {
 func TestOneOf(t *testing.T) {
 	gen := OneOf(Const(1), Const(2), Const(3))
 	r := rand.New(rand.NewSource(123))
-	
+
 	value, shrink := gen.Generate(r, Size{})
-	
 
 	if value != 1 && value != 2 && value != 3 {
 		t.Errorf("OneOf().Generate() = %d, expected 1, 2, or 3", value)
 	}
-	
 
 	if shrink == nil {
 		t.Error("OneOf().Generate() returned nil shrinker")
@@ -61,14 +55,12 @@ func TestOneOf(t *testing.T) {
 func TestWeighted(t *testing.T) {
 	gen := Weighted(func(x int) float64 { return float64(x) }, Const(1), Const(2), Const(3))
 	r := rand.New(rand.NewSource(123))
-	
+
 	value, shrink := gen.Generate(r, Size{})
-	
 
 	if value != 1 && value != 2 && value != 3 {
 		t.Errorf("Weighted().Generate() = %d, expected 1, 2, or 3", value)
 	}
-	
 
 	if shrink == nil {
 		t.Error("Weighted().Generate() returned nil shrinker")
@@ -81,14 +73,12 @@ func TestMap(t *testing.T) {
 		return fmt.Sprintf("value_%d", x)
 	})
 	r := rand.New(rand.NewSource(123))
-	
+
 	value, shrink := gen.Generate(r, Size{})
-	
 
 	if !strings.HasPrefix(value, "value_") {
 		t.Errorf("Map().Generate() = %q, expected string starting with 'value_'", value)
 	}
-	
 
 	if shrink == nil {
 		t.Error("Map().Generate() returned nil shrinker")
@@ -101,14 +91,12 @@ func TestFilter(t *testing.T) {
 		return x%2 == 0 // Only even numbers
 	}, 100) // max attempts
 	r := rand.New(rand.NewSource(123))
-	
+
 	value, shrink := gen.Generate(r, Size{})
-	
 
 	if value%2 != 0 {
 		t.Errorf("Filter().Generate() = %d, expected even number", value)
 	}
-	
 
 	if shrink == nil {
 		t.Error("Filter().Generate() returned nil shrinker")
@@ -121,14 +109,12 @@ func TestBind(t *testing.T) {
 		return Const(fmt.Sprintf("bound_%d", x))
 	})
 	r := rand.New(rand.NewSource(123))
-	
+
 	value, shrink := gen.Generate(r, Size{})
-	
 
 	if !strings.HasPrefix(value, "bound_") {
 		t.Errorf("Bind().Generate() = %q, expected string starting with 'bound_'", value)
 	}
-	
 
 	if shrink == nil {
 		t.Error("Bind().Generate() returned nil shrinker")

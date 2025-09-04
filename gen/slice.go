@@ -5,12 +5,13 @@ import (
 	"math/rand"
 )
 
-// SliceOf gera []T a partir de um gerador de elementos.
-// - size.Min/Max controlam o comprimento (padrão Min=0, Max=16).
+// SliceOf generates []T from an element generator.
+// - size.Min/Max control the length (default Min=0, Max=16).
 // Shrink:
-//  (1) remover blocos grandes (metade, quarto, …) → remove indices
-//  (2) remover elemento isolado (direita→esquerda)
-//  (3) tentar shrink nos elementos (propagando accept)
+//
+//	(1) remove large blocks (half, quarter, ...) → remove indices
+//	(2) remove isolated element (right→left)
+//	(3) try shrink on elements (propagating accept)
 func SliceOf[T any](elem Generator[T], size Size) Generator[[]T] {
 	return From(func(r *rand.Rand, sz Size) ([]T, Shrinker[[]T]) {
 		if r == nil {
@@ -33,7 +34,7 @@ func SliceOf[T any](elem Generator[T], size Size) Generator[[]T] {
 			n += r.Intn(size.Max - size.Min + 1)
 		}
 
-		// generate elems + capturar shrinkers
+		// generate elems + capture shrinkers
 		vals := make([]T, n)
 		shks := make([]Shrinker[T], n)
 		for i := 0; i < n; i++ {
@@ -42,7 +43,7 @@ func SliceOf[T any](elem Generator[T], size Size) Generator[[]T] {
 		}
 		cur := append(([]T)(nil), vals...) // snapshot
 
-		// dedup por “assinatura” textual (ok para teste; evita ciclos)
+		// dedup by textual "signature" (ok for testing; avoids cycles)
 		seen := map[string]struct{}{sig(cur): {}}
 		queue := make([][]T, 0, 64)
 		var last []T
@@ -53,12 +54,12 @@ func SliceOf[T any](elem Generator[T], size Size) Generator[[]T] {
 				return
 			}
 			seen[k] = struct{}{}
-			// copiar para não compartilhar backing array
+			// copy to avoid sharing backing array
 			cp := append(([]T)(nil), s...)
 			queue = append(queue, cp)
 		}
 
-		// remove intervalos [i:j) de cur
+		// remove intervals [i:j) from cur
 		rem := func(base []T, i, j int) []T {
 			out := make([]T, 0, len(base)-(j-i))
 			out = append(out, base[:i]...)
@@ -72,7 +73,7 @@ func SliceOf[T any](elem Generator[T], size Size) Generator[[]T] {
 			if L == 0 {
 				return
 			}
-			// (1) remover blocos grandes (binário: metade, quarto, …)
+			// (1) remove large blocks (binary: half, quarter, ...)
 			chunk := L / 2
 			for chunk >= 1 {
 				for i := 0; i+chunk <= L; i += chunk {
@@ -80,17 +81,17 @@ func SliceOf[T any](elem Generator[T], size Size) Generator[[]T] {
 				}
 				chunk /= 2
 			}
-			// (2) remover elemento isolado (R->L)
+			// (2) remove isolated element (R->L)
 			for i := L - 1; i >= 0; i-- {
 				push(rem(base, i, i+1))
 			}
-			// (3) shrink dos elementos localmente, mantendo tamanho
-			//     (gera um vizinho por posição com 1 passo de shrink)
+			// (3) shrink elements locally, maintaining size
+			//     (generates one neighbor per position with 1 shrink step)
 			for i := L - 1; i >= 0; i-- {
 				if shks == nil || shks[i] == nil {
 					continue
 				}
-				if nv, ok := shks[i](false); ok { // false: propondo candidato
+				if nv, ok := shks[i](false); ok { // false: proposing candidate
 					cand := append(([]T)(nil), base...)
 					cand[i] = nv
 					push(cand)
@@ -115,19 +116,19 @@ func SliceOf[T any](elem Generator[T], size Size) Generator[[]T] {
 
 		return cur, func(accept bool) ([]T, bool) {
 			if accept {
-				// rebaseia no último candidato aceito
+				// rebase on the last accepted candidate
 				if last != nil && sig(last) != sig(cur) {
 					cur = last
-					// IMPORTANTe: quando rebaseamos, precisamos regenerar shrinkers
-					// para manter consistência dos elementos (pode ser caro, mas simples)
+					// IMPORTANT: when we rebase, we need to regenerate shrinkers
+					// to maintain element consistency (can be expensive, but simple)
 					shks = make([]Shrinker[T], len(cur))
 					for i := range cur {
-						// reconstroi shrinker “focal” partindo do valor atual:
+						// rebuild "focal" shrinker starting from current value:
 						v := cur[i]
-						// truque: crie um gerador Const(v) e peça o shrinker dele (não tem).
-						// então, melhor: se queremos shrink futuro nos elementos, precisamos
-						// aceitar que só teremos 1 passo no vizinho (já feito em growNeighbors).
-						// Para manter simples no MVP, não retemos shrinkers após rebase.
+						// trick: create a Const(v) generator and get its shrinker (doesn't have one).
+						// so, better: if we want future shrink on elements, we need to
+						// accept that we'll only have 1 step in the neighbor (already done in growNeighbors).
+						// To keep it simple in MVP, we don't retain shrinkers after rebase.
 						shks[i] = nil
 						_ = v
 					}
@@ -144,7 +145,6 @@ func SliceOf[T any](elem Generator[T], size Size) Generator[[]T] {
 	})
 }
 
-// sig cria uma assinatura textual simplificada de um slice genérico.
-// Para fins de dedup de shrinking em testes, isso é suficiente.
+// sig creates a simplified textual signature of a generic slice.
+// For shrinking dedup purposes in tests, this is sufficient.
 func sig[T any](s []T) string { return fmt.Sprintf("%#v", s) }
-

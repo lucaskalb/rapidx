@@ -5,27 +5,27 @@ import (
 	"math/rand"
 )
 
-// Int gera inteiros com faixa automática a partir de Size:
-// - se sz.Max (ou |sz.Min|) > 0: faixa := [-M, M], onde M = max(|sz.Min|, |sz.Max|)
-// - caso contrário, usa faixa padrão [-100, 100].
-// Ex.: prop.ForAll(t, cfg, gen.Int(gen.Size{Max: 1000})) ...
+// Int generates integers with automatic range based on Size:
+// - if sz.Max (or |sz.Min|) > 0: range := [-M, M], where M = max(|sz.Min|, |sz.Max|)
+// - otherwise, uses default range [-100, 100].
+// Example: prop.ForAll(t, cfg, gen.Int(gen.Size{Max: 1000})) ...
 func Int(size Size) Generator[int] {
 	return From(func(r *rand.Rand, sz Size) (int, Shrinker[int]) {
 		if r == nil {
 			r = rand.New(rand.NewSource(rand.Int63()))
 		}
-		min, max := autoRange(size, sz) // decide a faixa efetiva
+		min, max := autoRange(size, sz) // decide the effective range
 		if min > max {
 			min, max = max, min
 		}
-		// gera uniforme
+		// generate uniformly
 		v := min + r.Intn(max-min+1)
 		return intShrinkInit(v, min, max)
 	})
 }
 
-// IntRange gera inteiros uniformemente no intervalo [min, max] (inclusivo).
-// Ignora sz para a faixa (útil quando você quer controle explícito).
+// IntRange generates integers uniformly in the range [min, max] (inclusive).
+// Ignores sz for the range (useful when you want explicit control).
 func IntRange(min, max int) Generator[int] {
 	if min > max {
 		min, max = max, min
@@ -39,14 +39,17 @@ func IntRange(min, max int) Generator[int] {
 	})
 }
 
-// -------------------- implementação / shrinking --------------------
+// -------------------- implementation / shrinking --------------------
 
+// intShrinkInit initializes the shrinking process for an integer value.
+// It returns the initial value and a shrinker function that can generate
+// progressively smaller candidates.
 func intShrinkInit(start, min, max int) (int, Shrinker[int]) {
-	// valor corrente (mínimo conhecido que falha) e último proposto
+	// current value (minimum known that fails) and last proposed
 	cur := clamp(start, min, max)
 	last := cur
 
-	// fila de vizinhos + deduplicação
+	// queue of neighbors + deduplication
 	queue := make([]int, 0, 16)
 	seen := map[int]struct{}{cur: {}}
 
@@ -61,28 +64,28 @@ func intShrinkInit(start, min, max int) (int, Shrinker[int]) {
 		queue = append(queue, x)
 	}
 
-	// heurística de vizinhos:
-	//  1) aproximar do alvo (0 se estiver na faixa, senão limite mais próximo)
-	//  2) “meio do caminho” em direção ao alvo (bisseção)
-	//  3) passo unitário em direção ao alvo (+/-1)
-	//  4) limites (min/max)
+	// neighbor heuristics:
+	//  1) approach the target (0 if in range, otherwise closest bound)
+	//  2) "halfway" towards the target (bisection)
+	//  3) unit step towards the target (+/-1)
+	//  4) bounds (min/max)
 	growNeighbors := func(base int) {
 		queue = queue[:0]
-		target := shrinkTarget(min, max) // 0 se possível; senão bound mais próximo
+		target := shrinkTarget(min, max) // 0 if possible; otherwise closest bound
 
-		// (1) alvo direto
+		// (1) direct target
 		if base != target {
 			push(target)
 		}
 
-		// (2) meio do caminho em direção ao alvo (bisseção)
+		// (2) halfway towards the target (bisection)
 		if base != target {
 			next := midpointTowards(base, target)
 			if next != base {
 				push(next)
 			}
-			// múltiplas bisseções arredondando para longe de base
-			// (gera série base -> base' -> ... -> target)
+			// multiple bisections rounding away from base
+			// (generates series base -> base' -> ... -> target)
 			series := next
 			for i := 0; i < 8; i++ {
 				if series == target {
@@ -95,7 +98,7 @@ func intShrinkInit(start, min, max int) (int, Shrinker[int]) {
 			}
 		}
 
-		// (3) passo unitário em direção ao alvo
+		// (3) unit step towards the target
 		if base != target {
 			step := stepTowards(base, target)
 			if step != base {
@@ -103,7 +106,7 @@ func intShrinkInit(start, min, max int) (int, Shrinker[int]) {
 			}
 		}
 
-		// (4) limites
+		// (4) bounds
 		if base != min {
 			push(min)
 		}
@@ -129,14 +132,14 @@ func intShrinkInit(start, min, max int) (int, Shrinker[int]) {
 	}
 
 	return cur, func(accept bool) (int, bool) {
-		// Se o último candidato foi ACEITO (continua falhando), rebaseie nele
+		// If the last candidate was ACCEPTED (still fails), rebase on it
 		if accept {
 			if last != cur {
 				cur = last
 				growNeighbors(cur)
 			}
 		}
-		// proponha o próximo vizinho
+		// propose the next neighbor
 		nxt, ok := pop()
 		if !ok {
 			return 0, false
@@ -146,29 +149,29 @@ func intShrinkInit(start, min, max int) (int, Shrinker[int]) {
 	}
 }
 
-// shrinkTarget retorna o alvo “natural” para onde reduzir:
-// - 0 se 0 ∈ [min,max]; caso contrário, o limite mais próximo de 0.
+// shrinkTarget returns the "natural" target to shrink towards:
+// - 0 if 0 ∈ [min,max]; otherwise, the bound closest to 0.
 func shrinkTarget(min, max int) int {
 	if min <= 0 && 0 <= max {
 		return 0
 	}
-	// fora da faixa: pegue o bound mais próximo de 0
+	// outside range: take the bound closest to 0
 	if min > 0 {
-		// faixa toda positiva -> min é o mais próximo de 0
+		// all positive range -> min is closest to 0
 		return min
 	}
-	// faixa toda negativa -> max é o mais próximo de 0 (ex.: [-10, -1] → -1)
+	// all negative range -> max is closest to 0 (e.g., [-10, -1] → -1)
 	return max
 }
 
-// midpointTowards dá um “passo de bisseção” de a em direção a b,
-// com arredondamento para longe de 'a' para garantir progresso.
+// midpointTowards gives a "bisection step" from a towards b,
+// with rounding away from 'a' to guarantee progress.
 func midpointTowards(a, b int) int {
 	if a == b {
 		return a
 	}
 	d := b - a
-	// arredonda “para cima” em magnitude para não travar quando |d| == 1
+	// round "up" in magnitude to not get stuck when |d| == 1
 	step := d / 2
 	if step == 0 {
 		if d > 0 {
@@ -180,7 +183,7 @@ func midpointTowards(a, b int) int {
 	return a + step
 }
 
-// stepTowards move um passo unitário de a em direção a b.
+// stepTowards moves one unit step from a towards b.
 func stepTowards(a, b int) int {
 	if a == b {
 		return a
@@ -191,11 +194,11 @@ func stepTowards(a, b int) int {
 	return a - 1
 }
 
-// autoRange decide a faixa final para Int(...) combinando o "size" local e o
-// "size" vindo do runner. Preferimos o maior alcance informado; se nada for
-// informado, usamos [-100, 100].
+// autoRange decides the final range for Int(...) by combining the local "size" and the
+// "size" coming from the runner. We prefer the largest range informed; if nothing is
+// informed, we use [-100, 100].
 func autoRange(local, fromRunner Size) (int, int) {
-	// escolha um "M" (magnitude) baseado no maior valor absoluto visto
+	// choose an "M" (magnitude) based on the largest absolute value seen
 	M := 0
 	for _, s := range []Size{local, fromRunner} {
 		M = maxInt(M, absInt(s.Min))
@@ -207,6 +210,7 @@ func autoRange(local, fromRunner Size) (int, int) {
 	return -M, M
 }
 
+// clamp constrains a value to be within the given bounds.
 func clamp(x, min, max int) int {
 	if x < min {
 		return min
@@ -217,16 +221,18 @@ func clamp(x, min, max int) int {
 	return x
 }
 
+// absInt returns the absolute value of an integer.
 func absInt(x int) int {
 	if x < 0 {
 		return -x
 	}
 	return x
 }
+
+// maxInt returns the maximum of two integers.
 func maxInt(a, b int) int {
 	if a > b {
 		return a
 	}
 	return b
 }
-

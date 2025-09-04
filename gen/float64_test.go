@@ -6,22 +6,16 @@ import (
 	"testing"
 )
 
-
-
 func TestFloat64ShrinkerWithAccept(t *testing.T) {
 
 	_, shrink := float64ShrinkInit(50.0, 0.0, 100.0, false, false)
-	
 
 	next1, ok1 := shrink(false)
 	if !ok1 {
 		t.Error("Float64 shrinker returned false on first call")
 	}
-	
 
 	next2, ok2 := shrink(true)
-
-	
 
 	if isFinite(next1) && (next1 < 0.0 || next1 > 100.0) {
 		t.Errorf("Float64 shrinker returned value %f outside range [0.0, 100.0]", next1)
@@ -34,7 +28,6 @@ func TestFloat64ShrinkerWithAccept(t *testing.T) {
 func TestFloat64ShrinkerExhaustion(t *testing.T) {
 	// Test shrinking behavior until exhaustion
 	_, shrink := float64ShrinkInit(50.0, 0.0, 100.0, false, false)
-	
 
 	callCount := 0
 	for {
@@ -48,7 +41,6 @@ func TestFloat64ShrinkerExhaustion(t *testing.T) {
 			break
 		}
 	}
-	
 
 	if callCount == 0 {
 		t.Error("Float64 shrinker exhausted immediately")
@@ -59,15 +51,13 @@ func TestFloat64ShrinkerWithDFSSStrategy(t *testing.T) {
 
 	SetShrinkStrategy("dfs")
 	defer SetShrinkStrategy("bfs")
-	
+
 	_, shrink := float64ShrinkInit(50.0, 0.0, 100.0, false, false)
-	
 
 	next, ok := shrink(false)
 	if !ok {
 		t.Error("Float64 shrinker returned false on first call")
 	}
-	
 
 	if isFinite(next) && (next < 0.0 || next > 100.0) {
 		t.Errorf("Float64 shrinker returned value %f outside range [0.0, 100.0]", next)
@@ -77,12 +67,12 @@ func TestFloat64ShrinkerWithDFSSStrategy(t *testing.T) {
 func TestFloat64ShrinkerEdgeCases(t *testing.T) {
 
 	tests := []struct {
-		name      string
-		start     float64
-		min       float64
-		max       float64
-		allowNaN  bool
-		allowInf  bool
+		name     string
+		start    float64
+		min      float64
+		max      float64
+		allowNaN bool
+		allowInf bool
 	}{
 		{"same min max", 5.0, 5.0, 5.0, false, false},
 		{"start at min", 0.0, 0.0, 100.0, false, false},
@@ -92,21 +82,18 @@ func TestFloat64ShrinkerEdgeCases(t *testing.T) {
 		{"with NaN", math.NaN(), 0.0, 10.0, true, false},
 		{"with Inf", math.Inf(1), 0.0, 10.0, false, true},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			start, shrink := float64ShrinkInit(tt.start, tt.min, tt.max, tt.allowNaN, tt.allowInf)
-			
 
 			if !math.IsNaN(tt.start) && start != tt.start {
 				t.Errorf("float64ShrinkInit() start = %f, expected %f", start, tt.start)
 			}
-			
 
 			if shrink == nil {
 				t.Error("float64ShrinkInit() returned nil shrinker")
 			}
-			
 
 			next, ok := shrink(false)
 			if ok {
@@ -123,9 +110,9 @@ func TestFloat64ShrinkerEdgeCases(t *testing.T) {
 
 func TestAutoRangeF64(t *testing.T) {
 	tests := []struct {
-		name       string
-		local      Size
-		fromRunner Size
+		name        string
+		local       Size
+		fromRunner  Size
 		expectedMin float64
 		expectedMax float64
 	}{
@@ -141,7 +128,7 @@ func TestAutoRangeF64(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			min, max := autoRangeF64(tt.local, tt.fromRunner)
 			if min != tt.expectedMin || max != tt.expectedMax {
-				t.Errorf("autoRangeF64(%v, %v) = (%f, %f), expected (%f, %f)", 
+				t.Errorf("autoRangeF64(%v, %v) = (%f, %f), expected (%f, %f)",
 					tt.local, tt.fromRunner, min, max, tt.expectedMin, tt.expectedMax)
 			}
 		})
@@ -150,10 +137,10 @@ func TestAutoRangeF64(t *testing.T) {
 
 func TestClampF64(t *testing.T) {
 	tests := []struct {
-		name string
-		x    float64
-		min  float64
-		max  float64
+		name     string
+		x        float64
+		min      float64
+		max      float64
 		expected float64
 	}{
 		{"in range", 5.0, 0.0, 10.0, 5.0},
@@ -169,20 +156,19 @@ func TestClampF64(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := clampF64(tt.x, tt.min, tt.max)
-			
 
 			if math.IsNaN(tt.expected) {
 				if !math.IsNaN(result) {
-					t.Errorf("clampF64(%f, %f, %f) = %f, expected NaN", 
+					t.Errorf("clampF64(%f, %f, %f) = %f, expected NaN",
 						tt.x, tt.min, tt.max, result)
 				}
 			} else if math.IsInf(tt.expected, 0) {
 				if !math.IsInf(result, 0) || math.IsInf(result, 0) != math.IsInf(tt.expected, 0) {
-					t.Errorf("clampF64(%f, %f, %f) = %f, expected %f", 
+					t.Errorf("clampF64(%f, %f, %f) = %f, expected %f",
 						tt.x, tt.min, tt.max, result, tt.expected)
 				}
 			} else if result != tt.expected {
-				t.Errorf("clampF64(%f, %f, %f) = %f, expected %f", 
+				t.Errorf("clampF64(%f, %f, %f) = %f, expected %f",
 					tt.x, tt.min, tt.max, result, tt.expected)
 			}
 		})
@@ -191,7 +177,7 @@ func TestClampF64(t *testing.T) {
 
 func TestUniformF64(t *testing.T) {
 	r := rand.New(rand.NewSource(123))
-	
+
 	tests := []struct {
 		name string
 		min  float64
@@ -207,16 +193,14 @@ func TestUniformF64(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			value := uniformF64(r, tt.min, tt.max)
-			
 
 			if !isFinite(value) {
 				t.Errorf("uniformF64(%f, %f) = %f, expected finite value", tt.min, tt.max, value)
 			}
-			
 
 			if isFinite(tt.min) && isFinite(tt.max) && tt.max >= tt.min {
 				if value < tt.min || value > tt.max {
-					t.Errorf("uniformF64(%f, %f) = %f, expected value in range [%f, %f]", 
+					t.Errorf("uniformF64(%f, %f) = %f, expected value in range [%f, %f]",
 						tt.min, tt.max, value, tt.min, tt.max)
 				}
 			}
@@ -224,13 +208,11 @@ func TestUniformF64(t *testing.T) {
 	}
 }
 
-
-
 func TestMidpointTowardsF64(t *testing.T) {
 	tests := []struct {
-		name string
-		a    float64
-		b    float64
+		name     string
+		a        float64
+		b        float64
 		expected float64
 	}{
 		{"same values", 5.0, 5.0, 5.0},
@@ -246,7 +228,7 @@ func TestMidpointTowardsF64(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := midpointTowardsF64(tt.a, tt.b)
 			if result != tt.expected {
-				t.Errorf("midpointTowardsF64(%f, %f) = %f, expected %f", 
+				t.Errorf("midpointTowardsF64(%f, %f) = %f, expected %f",
 					tt.a, tt.b, result, tt.expected)
 			}
 		})
@@ -279,8 +261,8 @@ func TestF64Key(t *testing.T) {
 
 func TestIsFinite(t *testing.T) {
 	tests := []struct {
-		name string
-		x    float64
+		name     string
+		x        float64
 		expected bool
 	}{
 		{"normal value", 1.0, true},
