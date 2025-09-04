@@ -35,12 +35,12 @@ func TestConfig_effectiveSeed(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			seed := tt.config.effectiveSeed()
 			if tt.config.Seed == 0 {
-				// Should generate a random seed
+
 				if seed == 0 {
 					t.Errorf("effectiveSeed() = %d, expected non-zero random seed", seed)
 				}
 			} else {
-				// Should return the same seed
+
 				if seed != tt.config.Seed {
 					t.Errorf("effectiveSeed() = %d, expected %d", seed, tt.config.Seed)
 				}
@@ -52,7 +52,7 @@ func TestConfig_effectiveSeed(t *testing.T) {
 func TestConfig_effectiveSeed_Consistency(t *testing.T) {
 	config := Config{Seed: 0}
 	
-	// Test that multiple calls with seed=0 generate different seeds
+
 	seeds := make(map[int64]bool)
 	for i := 0; i < 10; i++ {
 		seed := config.effectiveSeed()
@@ -67,7 +67,7 @@ func TestConfig_effectiveSeed_Consistency(t *testing.T) {
 func TestDefault(t *testing.T) {
 	config := Default()
 	
-	// Test that Default() returns a valid config
+
 	if config.Examples <= 0 {
 		t.Errorf("Default().Examples = %d, expected > 0", config.Examples)
 	}
@@ -100,7 +100,7 @@ func TestConfig_Fields(t *testing.T) {
 		Parallelism:        8,
 	}
 	
-	// Test field access
+
 	if config.Seed != 12345 {
 		t.Errorf("Config.Seed = %d, expected 12345", config.Seed)
 	}
@@ -131,7 +131,7 @@ func TestConfig_Fields(t *testing.T) {
 }
 
 func TestForAll_SequentialExecution(t *testing.T) {
-	// Test that ForAll works with parallelism = 1 (sequential)
+
 	config := Config{
 		Seed:        12345,
 		Examples:    5,
@@ -140,14 +140,14 @@ func TestForAll_SequentialExecution(t *testing.T) {
 		Parallelism: 1,
 	}
 	
-	// Create a simple generator that always returns the same value
+
 	gen := gen.From(func(r *rand.Rand, sz gen.Size) (int, gen.Shrinker[int]) {
 		return 42, func(accept bool) (int, bool) {
 			return 0, false
 		}
 	})
 	
-	// Test that the property passes
+
 	ForAll(t, config, gen)(func(t *testing.T, val int) {
 		if val != 42 {
 			t.Errorf("Expected 42, got %d", val)
@@ -156,7 +156,7 @@ func TestForAll_SequentialExecution(t *testing.T) {
 }
 
 func TestForAll_ParallelExecution(t *testing.T) {
-	// Test that ForAll works with parallelism > 1 (parallel)
+
 	config := Config{
 		Seed:        12345,
 		Examples:    5,
@@ -165,14 +165,14 @@ func TestForAll_ParallelExecution(t *testing.T) {
 		Parallelism: 2,
 	}
 	
-	// Create a simple generator that always returns the same value
+
 	gen := gen.From(func(r *rand.Rand, sz gen.Size) (int, gen.Shrinker[int]) {
 		return 42, func(accept bool) (int, bool) {
 			return 0, false
 		}
 	})
 	
-	// Test that the property passes
+
 	ForAll(t, config, gen)(func(t *testing.T, val int) {
 		if val != 42 {
 			t.Errorf("Expected 42, got %d", val)
@@ -190,7 +190,7 @@ func TestForAll_WithShrinking(t *testing.T) {
 		Parallelism: 1,
 	}
 	
-	// Create a generator with a working shrinker
+
 	shrinkerCallCount := 0
 	gen := gen.From(func(r *rand.Rand, sz gen.Size) (int, gen.Shrinker[int]) {
 		return 5, func(accept bool) (int, bool) {
@@ -202,9 +202,9 @@ func TestForAll_WithShrinking(t *testing.T) {
 		}
 	})
 	
-	// This should pass since we're not testing failure
+
 	ForAll(t, config, gen)(func(t *testing.T, val int) {
-		// Accept any value - this test is just to exercise the shrinking code path
+
 		if val < 0 || val > 10 {
 			t.Errorf("Value %d is outside expected range", val)
 		}
@@ -212,7 +212,7 @@ func TestForAll_WithShrinking(t *testing.T) {
 }
 
 func TestForAll_WithDFSSStrategy(t *testing.T) {
-	// Test with DFS strategy
+
 	config := Config{
 		Seed:        12345,
 		Examples:    3,
@@ -235,7 +235,7 @@ func TestForAll_WithDFSSStrategy(t *testing.T) {
 }
 
 func TestForAll_WithHighParallelism(t *testing.T) {
-	// Test with high parallelism
+
 	config := Config{
 		Seed:        12345,
 		Examples:    10,
@@ -313,22 +313,20 @@ func TestForAll_SequentialFailure(t *testing.T) {
 		Parallelism: 1,
 	}
 	
-	// Create a generator that will fail on the first test
+
 	gen := gen.From(func(r *rand.Rand, sz gen.Size) (int, gen.Shrinker[int]) {
 		return 42, func(accept bool) (int, bool) {
 			return 0, false // No shrinking
 		}
 	})
 	
-	// This should fail and trigger the failure path
-	// We can't easily test Fatalf directly, but we can verify the behavior
-	// by checking that the test fails as expected
+
 	ForAll(t, config, gen)(func(t *testing.T, val int) {
 		t.Errorf("This should fail: got %d", val)
 	})
 }
 
-// Test that we can exercise the failure code paths by using a subtest
+
 func TestForAll_SequentialFailureCodePath(t *testing.T) {
 	config := Config{
 		Seed:        12345,
@@ -338,14 +336,14 @@ func TestForAll_SequentialFailureCodePath(t *testing.T) {
 		Parallelism: 1,
 	}
 	
-	// Create a generator that will fail
+
 	gen := gen.From(func(r *rand.Rand, sz gen.Size) (int, gen.Shrinker[int]) {
 		return 42, func(accept bool) (int, bool) {
 			return 0, false
 		}
 	})
 	
-	// Use a subtest to isolate the failure
+
 	t.Run("failure_test", func(st *testing.T) {
 		// This will trigger the failure path in runSequential
 		ForAll(st, config, gen)(func(t *testing.T, val int) {
@@ -363,7 +361,7 @@ func TestForAll_SequentialFailureWithShrinking(t *testing.T) {
 		Parallelism: 1,
 	}
 	
-	// Create a generator with a working shrinker
+
 	shrinkerCallCount := 0
 	gen := gen.From(func(r *rand.Rand, sz gen.Size) (int, gen.Shrinker[int]) {
 		return 5, func(accept bool) (int, bool) {
@@ -375,7 +373,7 @@ func TestForAll_SequentialFailureWithShrinking(t *testing.T) {
 		}
 	})
 	
-	// This should fail and trigger shrinking
+
 	ForAll(t, config, gen)(func(t *testing.T, val int) {
 		t.Errorf("This should fail: got %d", val)
 	})
@@ -390,20 +388,20 @@ func TestForAll_SequentialFailureWithShrinkingAcceptance(t *testing.T) {
 		Parallelism: 1,
 	}
 	
-	// Create a generator with a shrinker that tests acceptance logic
+
 	shrinkerCallCount := 0
 	gen := gen.From(func(r *rand.Rand, sz gen.Size) (int, gen.Shrinker[int]) {
 		return 10, func(accept bool) (int, bool) {
 			shrinkerCallCount++
 			if shrinkerCallCount <= 3 {
-				// First few calls return smaller values that still fail
+
 				return 10 - shrinkerCallCount, true
 			}
 			return 0, false
 		}
 	})
 	
-	// This should fail and trigger shrinking with acceptance logic
+
 	ForAll(t, config, gen)(func(t *testing.T, val int) {
 		t.Errorf("This should fail: got %d", val)
 	})
@@ -419,14 +417,14 @@ func TestForAll_SequentialStopOnFirstFailureFalse(t *testing.T) {
 		StopOnFirstFailure: false,
 	}
 	
-	// Create a generator that will fail on all tests
+ on all tests
 	gen := gen.From(func(r *rand.Rand, sz gen.Size) (int, gen.Shrinker[int]) {
 		return 42, func(accept bool) (int, bool) {
 			return 0, false
 		}
 	})
 	
-	// This should fail but continue processing other examples
+
 	ForAll(t, config, gen)(func(t *testing.T, val int) {
 		t.Errorf("This should fail: got %d", val)
 	})
@@ -442,7 +440,7 @@ func TestForAll_ParallelFailure(t *testing.T) {
 		Parallelism: 2,
 	}
 	
-	// Create a generator that will fail
+
 	gen := gen.From(func(r *rand.Rand, sz gen.Size) (int, gen.Shrinker[int]) {
 		return 42, func(accept bool) (int, bool) {
 			return 0, false
@@ -464,7 +462,7 @@ func TestForAll_ParallelFailureWithShrinking(t *testing.T) {
 		Parallelism: 2,
 	}
 	
-	// Create a generator with a working shrinker
+
 	shrinkerCallCount := 0
 	gen := gen.From(func(r *rand.Rand, sz gen.Size) (int, gen.Shrinker[int]) {
 		return 5, func(accept bool) (int, bool) {
@@ -492,14 +490,14 @@ func TestForAll_ParallelStopOnFirstFailureFalse(t *testing.T) {
 		StopOnFirstFailure: false,
 	}
 	
-	// Create a generator that will fail
+
 	gen := gen.From(func(r *rand.Rand, sz gen.Size) (int, gen.Shrinker[int]) {
 		return 42, func(accept bool) (int, bool) {
 			return 0, false
 		}
 	})
 	
-	// This should fail but continue processing other examples
+
 	ForAll(t, config, gen)(func(t *testing.T, val int) {
 		t.Errorf("This should fail: got %d", val)
 	})
@@ -1309,6 +1307,11 @@ func TestForAll_ParallelShrinkingBreakPath(t *testing.T) {
 	
 	ForAll(t, config, gen)(func(t *testing.T, val int) {
 		// This test passes, so we test the shrinking break path in parallel
+		if val != 42 {
+			t.Errorf("Expected 42, got %d", val)
+		}
+	})
+}ng break path in parallel
 		if val != 42 {
 			t.Errorf("Expected 42, got %d", val)
 		}

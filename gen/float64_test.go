@@ -6,27 +6,23 @@ import (
 	"testing"
 )
 
-// TestFloat64 is already defined in float_test.go
 
-// TestFloat64Range is already defined in float_test.go
-
-// TestFloat64Shrinker is already defined in float_test.go
 
 func TestFloat64ShrinkerWithAccept(t *testing.T) {
-	// Test shrinking behavior with accept=true
+
 	_, shrink := float64ShrinkInit(50.0, 0.0, 100.0, false, false)
 	
-	// First call with accept=false
+
 	next1, ok1 := shrink(false)
 	if !ok1 {
 		t.Error("Float64 shrinker returned false on first call")
 	}
 	
-	// Second call with accept=true (should rebase)
+
 	next2, ok2 := shrink(true)
-	// It's possible that the shrinker exhausts quickly, so we don't require it to succeed
+
 	
-	// Test that first value is in range
+
 	if isFinite(next1) && (next1 < 0.0 || next1 > 100.0) {
 		t.Errorf("Float64 shrinker returned value %f outside range [0.0, 100.0]", next1)
 	}
@@ -39,7 +35,7 @@ func TestFloat64ShrinkerExhaustion(t *testing.T) {
 	// Test shrinking behavior until exhaustion
 	_, shrink := float64ShrinkInit(50.0, 0.0, 100.0, false, false)
 	
-	// Call shrinker many times until it returns false
+
 	callCount := 0
 	for {
 		_, ok := shrink(false)
@@ -47,39 +43,39 @@ func TestFloat64ShrinkerExhaustion(t *testing.T) {
 			break
 		}
 		callCount++
-		if callCount > 1000 { // Safety limit
+		if callCount > 1000 {
 			t.Error("Float64 shrinker did not exhaust after 1000 calls")
 			break
 		}
 	}
 	
-	// Should have made at least some calls
+
 	if callCount == 0 {
 		t.Error("Float64 shrinker exhausted immediately")
 	}
 }
 
 func TestFloat64ShrinkerWithDFSSStrategy(t *testing.T) {
-	// Test shrinking behavior with DFS strategy
+
 	SetShrinkStrategy("dfs")
-	defer SetShrinkStrategy("bfs") // Reset to default
+	defer SetShrinkStrategy("bfs")
 	
 	_, shrink := float64ShrinkInit(50.0, 0.0, 100.0, false, false)
 	
-	// Test that we get a value
+
 	next, ok := shrink(false)
 	if !ok {
 		t.Error("Float64 shrinker returned false on first call")
 	}
 	
-	// Test that value is in range
+
 	if isFinite(next) && (next < 0.0 || next > 100.0) {
 		t.Errorf("Float64 shrinker returned value %f outside range [0.0, 100.0]", next)
 	}
 }
 
 func TestFloat64ShrinkerEdgeCases(t *testing.T) {
-	// Test shrinking behavior with edge cases
+
 	tests := []struct {
 		name      string
 		start     float64
@@ -101,20 +97,20 @@ func TestFloat64ShrinkerEdgeCases(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			start, shrink := float64ShrinkInit(tt.start, tt.min, tt.max, tt.allowNaN, tt.allowInf)
 			
-			// For NaN, we can't use == comparison
+
 			if !math.IsNaN(tt.start) && start != tt.start {
 				t.Errorf("float64ShrinkInit() start = %f, expected %f", start, tt.start)
 			}
 			
-			// Test that shrinker is not nil
+
 			if shrink == nil {
 				t.Error("float64ShrinkInit() returned nil shrinker")
 			}
 			
-			// Test that we can call shrinker at least once
+
 			next, ok := shrink(false)
 			if ok {
-				// Test that value is in range (for finite values)
+
 				if isFinite(next) && isFinite(tt.min) && isFinite(tt.max) {
 					if next < tt.min || next > tt.max {
 						t.Errorf("Float64 shrinker returned value %f outside range [%f, %f]", next, tt.min, tt.max)
@@ -174,7 +170,7 @@ func TestClampF64(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := clampF64(tt.x, tt.min, tt.max)
 			
-			// Handle special cases
+
 			if math.IsNaN(tt.expected) {
 				if !math.IsNaN(result) {
 					t.Errorf("clampF64(%f, %f, %f) = %f, expected NaN", 
@@ -212,12 +208,12 @@ func TestUniformF64(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			value := uniformF64(r, tt.min, tt.max)
 			
-			// Test that we get a finite value
+
 			if !isFinite(value) {
 				t.Errorf("uniformF64(%f, %f) = %f, expected finite value", tt.min, tt.max, value)
 			}
 			
-			// For valid ranges, test that value is in range
+
 			if isFinite(tt.min) && isFinite(tt.max) && tt.max >= tt.min {
 				if value < tt.min || value > tt.max {
 					t.Errorf("uniformF64(%f, %f) = %f, expected value in range [%f, %f]", 
@@ -228,7 +224,7 @@ func TestUniformF64(t *testing.T) {
 	}
 }
 
-// TestFloat64Target is already defined in float_test.go
+
 
 func TestMidpointTowardsF64(t *testing.T) {
 	tests := []struct {
@@ -273,7 +269,7 @@ func TestF64Key(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			key := f64key(tt.x)
-			// Test that we get a uint64 key
+
 			if key == 0 && tt.x != 0.0 {
 				t.Errorf("f64key(%f) = %d, expected non-zero key", tt.x, key)
 			}

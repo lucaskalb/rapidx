@@ -22,12 +22,12 @@ type Config struct {
 }
 
 var (
-	flagSeed        = flag.Int64("rapidx.seed", 0, "seed global (0 => aleatório)")
-	flagExamples    = flag.Int("rapidx.examples", 100, "casos por propriedade")
-	flagMaxShrink   = flag.Int("rapidx.maxshrink", 400, "passos máx de shrinking")
-	flagShrinkStrat = flag.String("rapidx.shrink.strategy", "bfs", "estratégia de shrinking: bfs|dfs")
-	flagUseSubtests = flag.Bool("rapidx.shrink.subtests", true, "bool for enable subtests")
-	flagParallelism = flag.Int("rapidx.shrink.parallel", 1, "int for enable parallelism")
+	flagSeed        = flag.Int64("rapidx.seed", 0, "")
+	flagExamples    = flag.Int("rapidx.examples", 100, "")
+	flagMaxShrink   = flag.Int("rapidx.maxshrink", 400, "")
+	flagShrinkStrat = flag.String("rapidx.shrink.strategy", "bfs", "")
+	flagUseSubtests = flag.Bool("rapidx.shrink.subtests", true, "")
+	flagParallelism = flag.Int("rapidx.shrink.parallel", 1, "")
 )
 
 func Default() Config {
@@ -76,10 +76,10 @@ func runSequential[T any](t *testing.T, cfg Config, g gen.Generator[T], body fun
 			continue
 		}
 
-		// ========= SHRINK =========
+
 		min := val
 		steps := 0
-		acceptedPrev := true // o primeiro "min" falhou, então aceito
+		acceptedPrev := true
 
 		for steps < cfg.MaxShrink {
 			next, ok := shrink(acceptedPrev)
@@ -98,7 +98,7 @@ func runSequential[T any](t *testing.T, cfg Config, g gen.Generator[T], body fun
 			}
 		}
 
-		// regex amigável de replay
+
 		full := fmt.Sprintf("^%s$/%s(/|$)", t.Name(), name)
 		t.Fatalf("[rapidx] property failed; seed=%d; examples_run=%d; shrunk_steps=%d\n"+
 			"counterexample (min): %#v\nreplay: go test -run '%s' -rapidx.seed=%d",
@@ -111,32 +111,32 @@ func runSequential[T any](t *testing.T, cfg Config, g gen.Generator[T], body fun
 }
 
 func runParallel[T any](t *testing.T, cfg Config, g gen.Generator[T], body func(*testing.T, T), seed int64, r *rand.Rand) {
-	// Canal para coordenar a execução dos testes
+
 	testChan := make(chan int, cfg.Examples)
 	
-	// Preencher o canal com os índices dos testes
+
 	for i := 0; i < cfg.Examples; i++ {
 		testChan <- i
 	}
 	close(testChan)
 
-	// WaitGroup para aguardar todas as goroutines
+
 	var wg sync.WaitGroup
 	
-	// Mutex para proteger o acesso ao rand.Rand (não é thread-safe)
+
 	var randMutex sync.Mutex
 	
-	// Canal para receber falhas
+
 	failureChan := make(chan failureResult, cfg.Examples)
 	
-	// Iniciar as goroutines de trabalho
+
 	for i := 0; i < cfg.Parallelism; i++ {
 		wg.Add(1)
 		go func(workerID int) {
 			defer wg.Done()
 			
 			for testIndex := range testChan {
-				// Gerar valor de forma thread-safe
+
 				randMutex.Lock()
 				val, shrink := g.Generate(r, gen.Size{})
 				randMutex.Unlock()
@@ -148,7 +148,7 @@ func runParallel[T any](t *testing.T, cfg Config, g gen.Generator[T], body func(
 					continue
 				}
 
-				// ========= SHRINK =========
+		
 				min := val
 				steps := 0
 				acceptedPrev := true
@@ -170,7 +170,7 @@ func runParallel[T any](t *testing.T, cfg Config, g gen.Generator[T], body func(
 					}
 				}
 
-				// Enviar resultado da falha
+
 				failureChan <- failureResult{
 					testIndex: testIndex,
 					name:      name,
@@ -185,13 +185,13 @@ func runParallel[T any](t *testing.T, cfg Config, g gen.Generator[T], body func(
 		}(i)
 	}
 
-	// Goroutine para aguardar o fim das workers e fechar o canal de falhas
+
 	go func() {
 		wg.Wait()
 		close(failureChan)
 	}()
 
-	// Processar falhas conforme elas chegam
+
 	for failure := range failureChan {
 		full := fmt.Sprintf("^%s$/%s(/|$)", t.Name(), failure.name)
 		t.Fatalf("[rapidx] property failed; seed=%d; examples_run=%d; shrunk_steps=%d\n"+

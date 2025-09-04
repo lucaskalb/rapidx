@@ -12,7 +12,7 @@ func TestArrayOf(t *testing.T) {
 	
 	value, shrink := gen.Generate(r, Size{})
 	
-	// Test that we get an array of length 3
+
 	if len(value) != 3 {
 		t.Errorf("ArrayOf().Generate() = %v (len=%d), expected length 3", value, len(value))
 	}
@@ -42,7 +42,7 @@ func TestSliceOf(t *testing.T) {
 }
 
 func TestSliceShrinker(t *testing.T) {
-	// Test slice shrinking behavior
+
 	intGen := Int(Size{Min: 0, Max: 10})
 	gen := SliceOf(intGen, Size{Min: 2, Max: 5})
 	r := rand.New(rand.NewSource(123))
