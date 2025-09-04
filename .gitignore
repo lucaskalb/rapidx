@@ -68,3 +68,11 @@ coverage/
 
 # Air live reload
 tmp/
+
+# Makefile generated files
+gosec.sarif
+*.sarif
+
+# Development tools
+.vscode/settings.json
+.idea/workspace.xml

@@ -42,15 +42,3 @@ func UintRange(min, max uint) Generator[uint] {
 func uintShrinkInit(start, min, max uint) (uint, Shrinker[uint]) {
 	return unsignedShrinkInit(start, min, max)
 }
-
-// autoRangeUint decides the final range for Uint(...) by combining the local "size" and the
-// "size" coming from the runner. We prefer the largest range informed; if nothing is
-// informed, we use [0, 100].
-func autoRangeUint(local, fromRunner Size) (uint, uint) {
-	return autoRangeUnsigned[uint](local, fromRunner)
-}
-
-// clampU constrains a uint value to be within the given bounds.
-func clampU(x, min, max uint) uint {
-	return clampUnsigned(x, min, max)
-}
