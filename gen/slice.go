@@ -104,7 +104,7 @@ func SliceOf[T any](elem Generator[T], size Size) Generator[[]T] {
 			if len(queue) == 0 {
 				return nil, false
 			}
-			if shrinkStrategy == "dfs" {
+			if shrinkStrategy == ShrinkStrategyDFS {
 				v := queue[len(queue)-1]
 				queue = queue[:len(queue)-1]
 				return v, true

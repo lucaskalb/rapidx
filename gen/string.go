@@ -107,7 +107,7 @@ func String(alphabet string, size Size) Generator[string] {
 			if len(queue) == 0 {
 				return "", false
 			}
-			if shrinkStrategy == "dfs" {
+			if shrinkStrategy == ShrinkStrategyDFS {
 				v := queue[len(queue)-1]
 				queue = queue[:len(queue)-1]
 				return v, true

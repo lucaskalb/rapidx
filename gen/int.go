@@ -121,7 +121,7 @@ func intShrinkInit(start, min, max int) (int, Shrinker[int]) {
 		if len(queue) == 0 {
 			return 0, false
 		}
-		if shrinkStrategy == "dfs" {
+		if shrinkStrategy == ShrinkStrategyDFS {
 			v := queue[len(queue)-1]
 			queue = queue[:len(queue)-1]
 			return v, true

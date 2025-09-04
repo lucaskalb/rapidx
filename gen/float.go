@@ -152,7 +152,7 @@ func float32ShrinkInit(start, min, max float32, allowNaN, allowInf bool) (float3
 		if len(queue) == 0 {
 			return 0, false
 		}
-		if shrinkStrategy == "dfs" {
+		if shrinkStrategy == ShrinkStrategyDFS {
 			v := queue[len(queue)-1]
 			queue = queue[:len(queue)-1]
 			return v, true

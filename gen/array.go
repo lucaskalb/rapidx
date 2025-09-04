@@ -9,6 +9,7 @@ import "math/rand"
 func ArrayOf[T any](elem Generator[T], n int) Generator[[]T] {
 	return From(func(r *rand.Rand, _ Size) ([]T, Shrinker[[]T]) {
 		if r == nil {
+			// Using math/rand for deterministic property-based testing
 			r = rand.New(rand.NewSource(rand.Int63()))
 		}
 		if n < 0 {
@@ -58,7 +59,7 @@ func ArrayOf[T any](elem Generator[T], n int) Generator[[]T] {
 			if len(queue) == 0 {
 				return nil, false
 			}
-			if shrinkStrategy == "dfs" {
+			if shrinkStrategy == ShrinkStrategyDFS {
 				v := queue[len(queue)-1]
 				queue = queue[:len(queue)-1]
 				return v, true

@@ -95,7 +95,7 @@ func int64ShrinkInit(start, min, max int64) (int64, Shrinker[int64]) {
 		if len(queue) == 0 {
 			return 0, false
 		}
-		if shrinkStrategy == "dfs" {
+		if shrinkStrategy == ShrinkStrategyDFS {
 			v := queue[len(queue)-1]
 			queue = queue[:len(queue)-1]
 			return v, true

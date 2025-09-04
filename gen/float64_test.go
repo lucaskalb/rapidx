@@ -7,7 +7,6 @@ import (
 )
 
 func TestFloat64ShrinkerWithAccept(t *testing.T) {
-
 	_, shrink := float64ShrinkInit(50.0, 0.0, 100.0, false, false)
 
 	next1, ok1 := shrink(false)
@@ -48,9 +47,8 @@ func TestFloat64ShrinkerExhaustion(t *testing.T) {
 }
 
 func TestFloat64ShrinkerWithDFSSStrategy(t *testing.T) {
-
-	SetShrinkStrategy("dfs")
-	defer SetShrinkStrategy("bfs")
+	SetShrinkStrategy(ShrinkStrategyDFS)
+	defer SetShrinkStrategy(ShrinkStrategyBFS)
 
 	_, shrink := float64ShrinkInit(50.0, 0.0, 100.0, false, false)
 
@@ -65,7 +63,6 @@ func TestFloat64ShrinkerWithDFSSStrategy(t *testing.T) {
 }
 
 func TestFloat64ShrinkerEdgeCases(t *testing.T) {
-
 	tests := []struct {
 		name     string
 		start    float64

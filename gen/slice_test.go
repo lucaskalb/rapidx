@@ -18,7 +18,6 @@ func TestSliceOfWithRunnerSize(t *testing.T) {
 }
 
 func TestSliceOfShrinker(t *testing.T) {
-
 	r := rand.New(rand.NewSource(123))
 	gen := SliceOf(Int(Size{Min: 0, Max: 100}), Size{Min: 3, Max: 5})
 	start, shrink := gen.Generate(r, Size{})
@@ -95,8 +94,8 @@ func TestSliceOfShrinkerExhaustion(t *testing.T) {
 }
 
 func TestSliceOfShrinkerWithDFSSStrategy(t *testing.T) {
-	SetShrinkStrategy("dfs")
-	defer SetShrinkStrategy("bfs") // Reset to default
+	SetShrinkStrategy(ShrinkStrategyDFS)
+	defer SetShrinkStrategy(ShrinkStrategyBFS) // Reset to default
 
 	r := rand.New(rand.NewSource(123))
 	gen := SliceOf(Int(Size{Min: 0, Max: 100}), Size{Min: 3, Max: 5})

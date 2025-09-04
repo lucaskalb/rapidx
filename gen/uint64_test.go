@@ -6,7 +6,6 @@ import (
 )
 
 func TestUint64ShrinkerWithAccept(t *testing.T) {
-
 	_, shrink := uint64ShrinkInit(50, 0, 100)
 
 	next1, ok1 := shrink(false)
@@ -47,9 +46,8 @@ func TestUint64ShrinkerExhaustion(t *testing.T) {
 }
 
 func TestUint64ShrinkerWithDFSSStrategy(t *testing.T) {
-
-	SetShrinkStrategy("dfs")
-	defer SetShrinkStrategy("bfs")
+	SetShrinkStrategy(ShrinkStrategyDFS)
+	defer SetShrinkStrategy(ShrinkStrategyBFS)
 
 	_, shrink := uint64ShrinkInit(50, 0, 100)
 
@@ -64,7 +62,6 @@ func TestUint64ShrinkerWithDFSSStrategy(t *testing.T) {
 }
 
 func TestUint64ShrinkerEdgeCases(t *testing.T) {
-
 	tests := []struct {
 		name  string
 		start uint64
@@ -158,7 +155,6 @@ func TestClampU64(t *testing.T) {
 }
 
 func TestUint64MultipleGenerations(t *testing.T) {
-
 	r := rand.New(rand.NewSource(456))
 	gen := Uint64(Size{Min: 0, Max: 100})
 
@@ -187,7 +183,6 @@ func TestUint64RangeWithRunnerSize(t *testing.T) {
 }
 
 func TestUint64ShrinkingTarget(t *testing.T) {
-
 	_, shrink := uint64ShrinkInit(100, 0, 200)
 
 	zeroFound := false
@@ -208,7 +203,6 @@ func TestUint64ShrinkingTarget(t *testing.T) {
 }
 
 func TestUint64ShrinkingBisection(t *testing.T) {
-
 	_, shrink := uint64ShrinkInit(100, 0, 200)
 
 	halfFound := false
@@ -230,7 +224,6 @@ func TestUint64ShrinkingBisection(t *testing.T) {
 }
 
 func TestUint64ShrinkingUnitStep(t *testing.T) {
-
 	_, shrink := uint64ShrinkInit(5, 0, 10)
 
 	unitStepFound := false
@@ -252,7 +245,6 @@ func TestUint64ShrinkingUnitStep(t *testing.T) {
 }
 
 func TestUint64ShrinkingBoundaries(t *testing.T) {
-
 	_, shrink := uint64ShrinkInit(50, 0, 100)
 
 	minFound := false

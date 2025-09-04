@@ -7,6 +7,7 @@ import "math/rand"
 func Bool() Generator[bool] {
 	return From(func(r *rand.Rand, _ Size) (bool, Shrinker[bool]) {
 		if r == nil {
+			// Using math/rand for deterministic property-based testing
 			r = rand.New(rand.NewSource(rand.Int63()))
 		}
 		v := r.Intn(2) == 0 // true/false
@@ -39,7 +40,7 @@ func Bool() Generator[bool] {
 			if len(queue) == 0 {
 				return false, false
 			}
-			if shrinkStrategy == "dfs" {
+			if shrinkStrategy == ShrinkStrategyDFS {
 				v := queue[len(queue)-1]
 				queue = queue[:len(queue)-1]
 				return v, true

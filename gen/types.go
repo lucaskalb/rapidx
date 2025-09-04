@@ -28,18 +28,24 @@ type Generator[T any] interface {
 	Generate(r *rand.Rand, sz Size) (value T, shrink Shrinker[T])
 }
 
+// Shrinking strategy constants
+const (
+	ShrinkStrategyBFS = "bfs" // breadth-first search
+	ShrinkStrategyDFS = "dfs" // depth-first search
+)
+
 // shrinkStrategy holds the current shrinking strategy.
 // It can be either "bfs" (breadth-first search) or "dfs" (depth-first search).
-var shrinkStrategy = "bfs"
+var shrinkStrategy = ShrinkStrategyBFS
 
 // SetShrinkStrategy sets the shrinking strategy for all generators.
 // Valid strategies are "dfs" (depth-first search) and "bfs" (breadth-first search).
 // Any other value defaults to "bfs".
 func SetShrinkStrategy(s string) {
-	if s == "dfs" {
-		shrinkStrategy = "dfs"
+	if s == ShrinkStrategyDFS {
+		shrinkStrategy = ShrinkStrategyDFS
 	} else {
-		shrinkStrategy = "bfs"
+		shrinkStrategy = ShrinkStrategyBFS
 	}
 }
 

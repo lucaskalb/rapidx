@@ -333,8 +333,8 @@ func TestIntShrinkerExhaustion(t *testing.T) {
 
 func TestIntShrinkerWithDFSSStrategy(t *testing.T) {
 	// Test shrinking behavior with DFS strategy
-	SetShrinkStrategy("dfs")
-	defer SetShrinkStrategy("bfs") // Reset to default
+	SetShrinkStrategy(ShrinkStrategyDFS)
+	defer SetShrinkStrategy(ShrinkStrategyBFS) // Reset to default
 
 	_, shrink := intShrinkInit(50, 0, 100)
 
@@ -353,7 +353,7 @@ func TestIntShrinkerWithDFSSStrategy(t *testing.T) {
 func TestIntShrinkerWithInvalidStrategy(t *testing.T) {
 	// Test shrinking behavior with invalid strategy (should default to BFS)
 	SetShrinkStrategy("invalid")
-	defer SetShrinkStrategy("bfs") // Reset to default
+	defer SetShrinkStrategy(ShrinkStrategyBFS) // Reset to default
 
 	_, shrink := intShrinkInit(50, 0, 100)
 
