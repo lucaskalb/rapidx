@@ -24,7 +24,8 @@ jobs:
     - name: Check PR title
       run: |
         TITLE="${{ github.event.pull_request.title }}"
-        if [[ ! "$TITLE" =~ ^(feat|fix|docs|style|refactor|test|chore|ci|perf|build)(\(.+\))?: .+ ]]; then
+        REGEX='^(feat|fix|docs|style|refactor|test|chore|ci|perf|build)(\([[:alnum:]._-]+\))?: [^[:space:]].+'
+        if [[ ! $TITLE =~ $REGEX]]; then
           echo "❌ PR title should follow conventional commits format: type(scope): description"
           echo "Current title: $TITLE"
           echo "Examples:"
