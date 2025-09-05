@@ -23,7 +23,7 @@ func Test_Slice_SomaNaoNegativa(t *testing.T) {
 	// False property: "slice sum is always 0"
 	ints := gen.From(func(r *rand.Rand, _ gen.Size) (int, gen.Shrinker[int]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		v := r.Intn(201) - 100 // [-100..100]
 		// simple shrink for int: walk towards 0

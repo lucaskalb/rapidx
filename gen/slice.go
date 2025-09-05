@@ -15,7 +15,7 @@ import (
 func SliceOf[T any](elem Generator[T], size Size) Generator[[]T] {
 	return From(func(r *rand.Rand, sz Size) ([]T, Shrinker[[]T]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		// defaults
 		if size.Min == 0 && size.Max == 0 {
@@ -104,7 +104,7 @@ func SliceOf[T any](elem Generator[T], size Size) Generator[[]T] {
 			if len(queue) == 0 {
 				return nil, false
 			}
-			if shrinkStrategy == "dfs" {
+			if shrinkStrategy == ShrinkStrategyDFS {
 				v := queue[len(queue)-1]
 				queue = queue[:len(queue)-1]
 				return v, true

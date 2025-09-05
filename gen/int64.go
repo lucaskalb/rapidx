@@ -9,7 +9,7 @@ import (
 func Int64(size Size) Generator[int64] {
 	return From(func(r *rand.Rand, sz Size) (int64, Shrinker[int64]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		min, max := autoRange64(size, sz)
 		if min > max {
@@ -27,7 +27,7 @@ func Int64Range(min, max int64) Generator[int64] {
 	}
 	return From(func(r *rand.Rand, _ Size) (int64, Shrinker[int64]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		v := min + int64(r.Intn(int(max-min+1)))
 		return int64ShrinkInit(v, min, max)
@@ -95,7 +95,7 @@ func int64ShrinkInit(start, min, max int64) (int64, Shrinker[int64]) {
 		if len(queue) == 0 {
 			return 0, false
 		}
-		if shrinkStrategy == "dfs" {
+		if shrinkStrategy == ShrinkStrategyDFS {
 			v := queue[len(queue)-1]
 			queue = queue[:len(queue)-1]
 			return v, true

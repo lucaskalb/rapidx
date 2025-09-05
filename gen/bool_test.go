@@ -6,7 +6,6 @@ import (
 )
 
 func TestBoolShrinker(t *testing.T) {
-
 	start, shrink := boolShrinkInit(true)
 
 	if start != true {
@@ -75,8 +74,8 @@ func TestBoolShrinkerExhaustion(t *testing.T) {
 
 func TestBoolShrinkerWithDFSSStrategy(t *testing.T) {
 	// Test with DFS strategy
-	SetShrinkStrategy("dfs")
-	defer SetShrinkStrategy("bfs") // Reset to default
+	SetShrinkStrategy(ShrinkStrategyDFS)
+	defer SetShrinkStrategy(ShrinkStrategyBFS) // Reset to default
 
 	_, shrink := boolShrinkInit(true)
 
@@ -123,7 +122,6 @@ func TestBoolShrinkerEdgeCases(t *testing.T) {
 }
 
 func TestBoolMultipleGenerations(t *testing.T) {
-
 	r := rand.New(rand.NewSource(456))
 	gen := Bool()
 

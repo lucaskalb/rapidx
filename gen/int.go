@@ -12,7 +12,7 @@ import (
 func Int(size Size) Generator[int] {
 	return From(func(r *rand.Rand, sz Size) (int, Shrinker[int]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		min, max := autoRange(size, sz) // decide the effective range
 		if min > max {
@@ -32,7 +32,7 @@ func IntRange(min, max int) Generator[int] {
 	}
 	return From(func(r *rand.Rand, _ Size) (int, Shrinker[int]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		v := min + r.Intn(max-min+1)
 		return intShrinkInit(v, min, max)
@@ -121,7 +121,7 @@ func intShrinkInit(start, min, max int) (int, Shrinker[int]) {
 		if len(queue) == 0 {
 			return 0, false
 		}
-		if shrinkStrategy == "dfs" {
+		if shrinkStrategy == ShrinkStrategyDFS {
 			v := queue[len(queue)-1]
 			queue = queue[:len(queue)-1]
 			return v, true

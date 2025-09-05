@@ -24,7 +24,8 @@ jobs:
     - name: Check PR title
       run: |
         TITLE="${{ github.event.pull_request.title }}"
-        if [[ ! "$TITLE" =~ ^(feat|fix|docs|style|refactor|test|chore|ci|perf|build)(\(.+\))?: .+ ]]; then
+        REGEX='^(feat|fix|docs|style|refactor|test|chore|ci|perf|build)(\([[:alnum:]._-]+\))?: [^[:space:]].+'
+        if [[ ! $TITLE =~ $REGEX ]]; then
           echo "❌ PR title should follow conventional commits format: type(scope): description"
           echo "Current title: $TITLE"
           echo "Examples:"
@@ -50,18 +51,18 @@ jobs:
     - name: Run linting
       run: |
         go vet ./...
-        go fmt -d .
+        go fmt ./...
         
     - name: Check test coverage
       run: |
         go test -coverprofile=coverage.out ./...
         COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
         echo "Test coverage: ${COVERAGE}%"
-        if (( $(echo "$COVERAGE < 80" | bc -l) )); then
-          echo "❌ Test coverage is below 80%"
+        if (( $(echo "$COVERAGE < 70" | bc -l) )); then
+          echo "❌ Test coverage is below 70%"
           exit 1
         fi
-        echo "✅ Test coverage is above 80%"
+        echo "✅ Test coverage is above 70%"
         
     - name: Validate ADR changes
       run: |

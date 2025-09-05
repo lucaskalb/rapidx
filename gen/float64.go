@@ -11,7 +11,7 @@ import (
 func Float64(size Size) Generator[float64] {
 	return From(func(r *rand.Rand, sz Size) (float64, Shrinker[float64]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		min, max := autoRangeF64(size, sz)
 		if min > max {
@@ -49,7 +49,7 @@ func Float64Range(min, max float64, includeNaN, includeInf bool) Generator[float
 	}
 	return From(func(r *rand.Rand, _ Size) (float64, Shrinker[float64]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		v := uniformF64(r, min, max)
 		// small chance of specials, if enabled
@@ -184,7 +184,7 @@ func float64ShrinkInit(start, min, max float64, allowNaN, allowInf bool) (float6
 		if len(queue) == 0 {
 			return 0, false
 		}
-		if shrinkStrategy == "dfs" {
+		if shrinkStrategy == ShrinkStrategyDFS {
 			v := queue[len(queue)-1]
 			queue = queue[:len(queue)-1]
 			return v, true

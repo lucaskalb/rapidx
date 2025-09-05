@@ -12,7 +12,7 @@ func TestUint(t *testing.T) {
 	value, shrink := gen.Generate(r, Size{})
 
 	// Test that we get a uint
-	if value < 0 || value > 100 {
+	if value > 100 {
 		t.Errorf("Uint().Generate() = %d, expected value in range [0, 100]", value)
 	}
 
@@ -58,7 +58,7 @@ func TestUintShrinker(t *testing.T) {
 	}
 
 	// Test that value is in range
-	if next < 0 || next > 100 {
+	if next > 100 {
 		t.Errorf("Uint shrinker returned value %d outside range [0, 100]", next)
 	}
 }
@@ -70,7 +70,7 @@ func TestUint64(t *testing.T) {
 	value, shrink := gen.Generate(r, Size{})
 
 	// Test that we get a uint64
-	if value < 0 || value > 100 {
+	if value > 100 {
 		t.Errorf("Uint64().Generate() = %d, expected value in range [0, 100]", value)
 	}
 
@@ -116,7 +116,7 @@ func TestUint64Shrinker(t *testing.T) {
 	}
 
 	// Test that value is in range
-	if next < 0 || next > 100 {
+	if next > 100 {
 		t.Errorf("Uint64 shrinker returned value %d outside range [0, 100]", next)
 	}
 }

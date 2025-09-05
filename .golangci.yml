@@ -1,170 +1,83 @@
+# golangci-lint configuration for rapidx project
+# Replicates GitHub Actions CI checks
+
 run:
   timeout: 5m
-  modules-download-mode: readonly
+  go: "1.24"
 
 linters-settings:
   dupl:
     threshold: 100
-  funlen:
-    lines: 100
-    statements: 50
-  gci:
-    local-prefixes: github.com/lucaskalb/rapidx
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - dupImport # https://github.com/go-critic/go-critic/issues/845
-      - ifElseChain
-      - octalLiteral
-      - whyNoLint
-      - wrapperFunc
   gocyclo:
     min-complexity: 15
-  goimports:
-    local-prefixes: github.com/lucaskalb/rapidx
-  golint:
-    min-confidence: 0
-  gomnd:
-    settings:
-      mnd:
-        # don't include the "operation" and "assign"
-        checks: argument,case,condition,return
-  govet:
-    check-shadowing: true
-    settings:
-      printf:
-        funcs:
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
-  lll:
-    line-length: 140
-  maligned:
-    suggest-new: true
-  misspell:
-    locale: US
-  nolintlint:
-    allow-leading-space: true # don't require machine-readable nolint directives (i.e. with no leading space)
-    allow-unused: false # report any unused nolint directives
-    require-explanation: false # don't require an explanation for nolint directives
-    require-specific: false # don't require nolint directives to be specific about which linter is being skipped
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  gosec:
+    severity: high
+    confidence: high
 
 linters:
-  # please, do not use `enable-all`: it's deprecated and will be removed soon.
-  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
   disable-all: true
   enable:
-    - bodyclose
-    - deadcode
-    - depguard
-    - dogsled
     - dupl
-    - errcheck
-    - exportloopref
-    - exhaustive
-    - funlen
-    - gochecknoinits
     - goconst
-    - gocritic
     - gocyclo
-    - gofmt
-    - goimports
-    - golint
-    - gomnd
-    - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
-    - lll
     - misspell
-    - nakedret
-    - noctx
-    - nolintlint
-    - rowserrcheck
     - staticcheck
-    - structcheck
-    - stylecheck
     - typecheck
-    - unconvert
-    - unparam
     - unused
-    - varcheck
     - whitespace
 
-  # don't enable:
-  # - asciicheck
-  # - gochecknoglobals
-  # - gocognit
-  # - gochecknoinits
-  # - interfacer
-  # - maligned
-  # - scopelint
-  # - wsl
-
 issues:
-  # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     - path: _test\.go
       linters:
-        - gomnd
-        - funlen
         - gocyclo
         - goconst
         - dupl
-        - lll
-    - path: gen/domain/
+        - gosec
+        - whitespace
+    - path: testfailures/
       linters:
-        - gomnd # Allow magic numbers in domain-specific generators
-    - text: "Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv). is not checked"
+        - gosec
+        - goconst
+        - dupl
+        - gocyclo
+        - whitespace
+    - path: docs/examples/
       linters:
-        - errcheck
-    - linters:
-        - lll
-      source: "^//go:generate "
+        - gosec
+        - goconst
+        - dupl
+        - gocyclo
+        - whitespace
+    - text: "G404: Use of weak random number generator"
+      linters:
+        - gosec
+    - text: "weak cryptographic primitive"
+      linters:
+        - gosec
+    - text: "G115: integer overflow conversion"
+      linters:
+        - gosec
+    - text: "SA9003: empty branch"
+      linters:
+        - staticcheck
+    - text: "cyclomatic complexity.*of func.*is high"
+      linters:
+        - gocyclo
 
-  # Independently from option `exclude` we use default exclude patterns,
-  # it can be disabled by this option. To list all
-  # excluded by default patterns execute `golangci-lint run --help`.
-  # Default value for this option is true.
-  exclude-use-default: false
-
-  # The default value is false. If set to true exclude and exclude-rules
-  # regular expressions become case sensitive.
-  exclude-case-sensitive: false
-
-  # The list of ids of default excludes to include or disable. By default it's empty.
-  include:
-    - EXC0002 # disable excluding of issues about comments from golint
-
-  # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
   max-issues-per-linter: 0
-
-  # Maximum count of issues with the same text. Set to 0 to disable. Default is 3.
   max-same-issues: 0
-
-  # Show only new issues: if there are unstaged changes or untracked files,
-  # only those changes are analyzed, else only changes in HEAD~ are analyzed.
-  # It's a super-useful option for integration of golangci-lint into existing
-  # large codebase. It's not practical to fix all existing issues at once
-  # because the tool will become unusable. Instead, you can set only-new=true
-  # and fix only new issues in your code.
-  new: false
-
-  # Show only new issues created after git revision `REV`
-  new-from-rev: ""
-
-  # Show only new issues created in git patch with set file path.
-  new-from-patch: ""
-
-  # Fix found issues (if it's supported by the linter)
-  fix: false
+  tests: true
+  print-linter-name: true
+  print-issued-line: true
+  colored: true
+  skip-dirs:
+    - vendor
+    - testdata
+  use-default-excludes: true

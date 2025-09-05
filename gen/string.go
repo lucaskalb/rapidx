@@ -32,7 +32,7 @@ const (
 func String(alphabet string, size Size) Generator[string] {
 	return From(func(r *rand.Rand, sz Size) (string, Shrinker[string]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		// defaults
 		if len(alphabet) == 0 {
@@ -107,7 +107,7 @@ func String(alphabet string, size Size) Generator[string] {
 			if len(queue) == 0 {
 				return "", false
 			}
-			if shrinkStrategy == "dfs" {
+			if shrinkStrategy == ShrinkStrategyDFS {
 				v := queue[len(queue)-1]
 				queue = queue[:len(queue)-1]
 				return v, true

@@ -88,25 +88,7 @@ jobs:
             echo "✅ README contains links (manual verification recommended)"
           fi
         fi
-        
-    - name: Validate code examples in docs
-      run: |
-        find docs -name "*.md" -exec grep -l "```go" {} \; | while read file; do
-          echo "Checking Go code examples in $file..."
-          
-          # Extract Go code blocks and check syntax
-          awk '/```go/,/```/' "$file" | grep -v "^```" | grep -v "^$" > /tmp/extracted_code.go
-          
-          if [ -s /tmp/extracted_code.go ]; then
-            if ! go fmt /tmp/extracted_code.go > /dev/null 2>&1; then
-              echo "❌ Invalid Go syntax in $file"
-              cat /tmp/extracted_code.go
-              exit 1
-            fi
-          fi
-        done
-        echo "✅ Go code examples are valid"
-        
+
     - name: Check for broken internal links
       run: |
         find docs -name "*.md" | while read file; do

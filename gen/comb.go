@@ -31,7 +31,7 @@ func Weighted[T any](weight func(T) float64, gs ...Generator[T]) Generator[T] {
 	}
 	return From(func(r *rand.Rand, sz Size) (T, Shrinker[T]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		// step 1: choose generator
 		idx := r.Intn(len(gs))
@@ -110,7 +110,7 @@ func Filter[T any](g Generator[T], pred func(T) bool, maxTries int) Generator[T]
 	}
 	return From(func(r *rand.Rand, sz Size) (T, Shrinker[T]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		// generate a value that passes the pred
 		var v T
@@ -152,7 +152,7 @@ func Filter[T any](g Generator[T], pred func(T) bool, maxTries int) Generator[T]
 func Bind[A, B any](ga Generator[A], f func(A) Generator[B]) Generator[B] {
 	return From(func(r *rand.Rand, sz Size) (B, Shrinker[B]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		a, sa := ga.Generate(r, sz)
 		gb := f(a)

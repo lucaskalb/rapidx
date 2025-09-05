@@ -6,7 +6,6 @@ import (
 )
 
 func TestUint64ShrinkerWithAccept(t *testing.T) {
-
 	_, shrink := uint64ShrinkInit(50, 0, 100)
 
 	next1, ok1 := shrink(false)
@@ -16,10 +15,10 @@ func TestUint64ShrinkerWithAccept(t *testing.T) {
 
 	next2, ok2 := shrink(true)
 
-	if next1 < 0 || next1 > 100 {
+	if next1 > 100 {
 		t.Errorf("Uint64 shrinker returned value %d outside range [0, 100]", next1)
 	}
-	if ok2 && (next2 < 0 || next2 > 100) {
+	if ok2 && next2 > 100 {
 		t.Errorf("Uint64 shrinker returned value %d outside range [0, 100]", next2)
 	}
 }
@@ -47,9 +46,8 @@ func TestUint64ShrinkerExhaustion(t *testing.T) {
 }
 
 func TestUint64ShrinkerWithDFSSStrategy(t *testing.T) {
-
-	SetShrinkStrategy("dfs")
-	defer SetShrinkStrategy("bfs")
+	SetShrinkStrategy(ShrinkStrategyDFS)
+	defer SetShrinkStrategy(ShrinkStrategyBFS)
 
 	_, shrink := uint64ShrinkInit(50, 0, 100)
 
@@ -58,13 +56,12 @@ func TestUint64ShrinkerWithDFSSStrategy(t *testing.T) {
 		t.Error("Uint64 shrinker returned false on first call")
 	}
 
-	if next < 0 || next > 100 {
+	if next > 100 {
 		t.Errorf("Uint64 shrinker returned value %d outside range [0, 100]", next)
 	}
 }
 
 func TestUint64ShrinkerEdgeCases(t *testing.T) {
-
 	tests := []struct {
 		name  string
 		start uint64
@@ -94,7 +91,7 @@ func TestUint64ShrinkerEdgeCases(t *testing.T) {
 			next, ok := shrink(false)
 			if ok {
 
-				if next < tt.min || next > tt.max {
+				if next > tt.max {
 					t.Errorf("Uint64 shrinker returned value %d outside range [%d, %d]", next, tt.min, tt.max)
 				}
 			}
@@ -158,7 +155,6 @@ func TestClampU64(t *testing.T) {
 }
 
 func TestUint64MultipleGenerations(t *testing.T) {
-
 	r := rand.New(rand.NewSource(456))
 	gen := Uint64(Size{Min: 0, Max: 100})
 
@@ -181,13 +177,12 @@ func TestUint64RangeWithRunnerSize(t *testing.T) {
 	gen := Uint64(Size{Min: 0, Max: 50})
 	value, _ := gen.Generate(r, Size{Min: 0, Max: 30}) // runner size should override
 
-	if value < 0 || value > 30 {
+	if value > 30 {
 		t.Errorf("Uint64() with runner size returned value %d, expected value in range [0, 30]", value)
 	}
 }
 
 func TestUint64ShrinkingTarget(t *testing.T) {
-
 	_, shrink := uint64ShrinkInit(100, 0, 200)
 
 	zeroFound := false
@@ -208,7 +203,6 @@ func TestUint64ShrinkingTarget(t *testing.T) {
 }
 
 func TestUint64ShrinkingBisection(t *testing.T) {
-
 	_, shrink := uint64ShrinkInit(100, 0, 200)
 
 	halfFound := false
@@ -230,7 +224,6 @@ func TestUint64ShrinkingBisection(t *testing.T) {
 }
 
 func TestUint64ShrinkingUnitStep(t *testing.T) {
-
 	_, shrink := uint64ShrinkInit(5, 0, 10)
 
 	unitStepFound := false
@@ -252,7 +245,6 @@ func TestUint64ShrinkingUnitStep(t *testing.T) {
 }
 
 func TestUint64ShrinkingBoundaries(t *testing.T) {
-
 	_, shrink := uint64ShrinkInit(50, 0, 100)
 
 	minFound := false
