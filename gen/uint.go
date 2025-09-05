@@ -9,7 +9,7 @@ import (
 func Uint(size Size) Generator[uint] {
 	return From(func(r *rand.Rand, sz Size) (uint, Shrinker[uint]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		min, max := autoRangeUnsigned[uint](size, sz) // [min,max], min>=0
 		if min > max {
@@ -27,7 +27,7 @@ func UintRange(min, max uint) Generator[uint] {
 	}
 	return From(func(r *rand.Rand, _ Size) (uint, Shrinker[uint]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		v := min + uint(r.Intn(int(max-min+1)))
 		return unsignedShrinkInit(v, min, max)

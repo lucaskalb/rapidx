@@ -11,7 +11,7 @@ import (
 func Float64(size Size) Generator[float64] {
 	return From(func(r *rand.Rand, sz Size) (float64, Shrinker[float64]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		min, max := autoRangeF64(size, sz)
 		if min > max {
@@ -49,7 +49,7 @@ func Float64Range(min, max float64, includeNaN, includeInf bool) Generator[float
 	}
 	return From(func(r *rand.Rand, _ Size) (float64, Shrinker[float64]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		v := uniformF64(r, min, max)
 		// small chance of specials, if enabled

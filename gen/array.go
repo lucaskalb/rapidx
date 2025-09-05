@@ -10,7 +10,7 @@ func ArrayOf[T any](elem Generator[T], n int) Generator[[]T] {
 	return From(func(r *rand.Rand, _ Size) ([]T, Shrinker[[]T]) {
 		if r == nil {
 			// Using math/rand for deterministic property-based testing
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		if n < 0 {
 			n = 0

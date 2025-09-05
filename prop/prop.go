@@ -102,7 +102,7 @@ func (c Config) effectiveSeed() int64 {
 func ForAll[T any](t *testing.T, cfg Config, g gen.Generator[T]) func(func(*testing.T, T)) {
 	return func(body func(*testing.T, T)) {
 		seed := cfg.effectiveSeed()
-		r := rand.New(rand.NewSource(seed))
+		r := rand.New(rand.NewSource(seed)) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		gen.SetShrinkStrategy(cfg.ShrinkStrat)
 
 		t.Logf("[rapidx] seed=%d examples=%d maxshrink=%d strategy=%s parallelism=%d",

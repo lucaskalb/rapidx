@@ -15,7 +15,7 @@ func CPF(masked bool) gen.Generator[string] {
 		if r == nil {
 			// Using math/rand for deterministic property-based testing
 			// This is appropriate for test data generation, not cryptographic purposes
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 
 		cur := generateCPF(r, masked)
@@ -179,7 +179,7 @@ func buildCPFString(r9 []byte) string {
 func CPFAny() gen.Generator[string] {
 	return gen.From(func(r *rand.Rand, sz gen.Size) (string, gen.Shrinker[string]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		if r.Intn(2) == 0 {
 			return CPF(true).Generate(r, sz)

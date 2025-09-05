@@ -7,7 +7,7 @@ import "math/rand"
 func Uint64(size Size) Generator[uint64] {
 	return From(func(r *rand.Rand, sz Size) (uint64, Shrinker[uint64]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		min, max := autoRangeUnsigned[uint64](size, sz)
 		if min > max {
@@ -25,7 +25,7 @@ func Uint64Range(min, max uint64) Generator[uint64] {
 	}
 	return From(func(r *rand.Rand, _ Size) (uint64, Shrinker[uint64]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		v := min + uint64(r.Intn(int(max-min+1)))
 		return unsignedShrinkInit(v, min, max)

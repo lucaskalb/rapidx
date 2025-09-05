@@ -8,7 +8,7 @@ func Bool() Generator[bool] {
 	return From(func(r *rand.Rand, _ Size) (bool, Shrinker[bool]) {
 		if r == nil {
 			// Using math/rand for deterministic property-based testing
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		v := r.Intn(2) == 0 // true/false
 		cur, last := v, v

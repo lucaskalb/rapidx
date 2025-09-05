@@ -10,7 +10,7 @@ import (
 func Float32(size Size) Generator[float32] {
 	return From(func(r *rand.Rand, sz Size) (float32, Shrinker[float32]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		min, max := autoRangeF32(size, sz)
 		if min > max {
@@ -28,7 +28,7 @@ func Float32Range(min, max float32, includeNaN, includeInf bool) Generator[float
 	}
 	return From(func(r *rand.Rand, _ Size) (float32, Shrinker[float32]) {
 		if r == nil {
-			r = rand.New(rand.NewSource(rand.Int63()))
+			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
 		v := uniformF32(r, min, max)
 		if includeNaN && r.Intn(50) == 0 {
