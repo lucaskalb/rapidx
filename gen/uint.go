@@ -15,7 +15,7 @@ func Uint(size Size) Generator[uint] {
 		if min > max {
 			min, max = max, min
 		}
-		v := min + uint(r.Intn(int(max-min+1)))
+		v := min + uint(r.Intn(int(max-min+1))) // #nosec G115 -- Safe for property-based testing ranges
 		return unsignedShrinkInit(v, min, max)
 	})
 }
@@ -29,7 +29,7 @@ func UintRange(min, max uint) Generator[uint] {
 		if r == nil {
 			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
-		v := min + uint(r.Intn(int(max-min+1)))
+		v := min + uint(r.Intn(int(max-min+1))) // #nosec G115 -- Safe for property-based testing ranges
 		return unsignedShrinkInit(v, min, max)
 	})
 }

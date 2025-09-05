@@ -13,7 +13,7 @@ func Uint64(size Size) Generator[uint64] {
 		if min > max {
 			min, max = max, min
 		}
-		v := min + uint64(r.Intn(int(max-min+1)))
+		v := min + uint64(r.Intn(int(max-min+1))) // #nosec G115 -- Safe for property-based testing ranges
 		return unsignedShrinkInit(v, min, max)
 	})
 }
@@ -27,7 +27,7 @@ func Uint64Range(min, max uint64) Generator[uint64] {
 		if r == nil {
 			r = rand.New(rand.NewSource(rand.Int63())) // #nosec G404 -- Using math/rand for deterministic property-based testing
 		}
-		v := min + uint64(r.Intn(int(max-min+1)))
+		v := min + uint64(r.Intn(int(max-min+1))) // #nosec G115 -- Safe for property-based testing ranges
 		return unsignedShrinkInit(v, min, max)
 	})
 }
