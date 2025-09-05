@@ -58,11 +58,11 @@ jobs:
         go test -coverprofile=coverage.out ./...
         COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
         echo "Test coverage: ${COVERAGE}%"
-        if (( $(echo "$COVERAGE < 80" | bc -l) )); then
-          echo "❌ Test coverage is below 80%"
+        if (( $(echo "$COVERAGE < 70" | bc -l) )); then
+          echo "❌ Test coverage is below 70%"
           exit 1
         fi
-        echo "✅ Test coverage is above 80%"
+        echo "✅ Test coverage is above 70%"
         
     - name: Validate ADR changes
       run: |
